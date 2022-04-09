@@ -144,4 +144,4 @@ class Scanner:
     def get_all_tokens(self):
         for no, line in enumerate(self.lines):
             self.get_next_line_tokens(no, line)
-        self.file_handler.write_token_file()
+        self.file_handler.write_files()
