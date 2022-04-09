@@ -45,7 +45,7 @@ class Scanner:
                         idx + 1] not in enums.Languages.WHITESPACES.value and not re.search(enums.Regex.LETTER.value,
                                                                                             chars[
                                                                                                 idx + 1]) and not re.search(
-                            enums.Regex.DIGIT.value, chars[idx + 1]) and chars[
+                        enums.Regex.DIGIT.value, chars[idx + 1]) and chars[
                         idx + 1] != enums.Languages.HASHTAG.value:
                         current_token = chars[idx]
                         idx += 1
@@ -89,7 +89,9 @@ class Scanner:
                         if re.search(enums.Regex.DIGIT.value, chars[i]):
                             number_lexeme = chars[idx:i + 1]
                         elif chars[i] == '.' and re.search(enums.Regex.DIGIT.value,
-                                                           chars[i - 1]) and '.' not in chars[idx:i]:
+                                                           chars[i - 1]) and '.' not in chars[idx:i] and re.search(
+                            enums.Regex.DIGIT.value,
+                            chars[i + 1]):
                             number_lexeme = chars[idx:i + 1]
                         elif chars[i] == '.' and re.search(enums.Regex.DIGIT.value, chars[i - 1]) and '.' in chars[
                                                                                                              idx:i]:
