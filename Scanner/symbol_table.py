@@ -1,4 +1,4 @@
-import enums
+from Scanner import enums
 
 
 class SymbolTable:

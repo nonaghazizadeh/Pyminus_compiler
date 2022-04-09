@@ -1,8 +1,8 @@
 import re
 
-import enums
+from Scanner import enums
 
-from file_handler import FileHandler
+from Scanner.file_handler import FileHandler
 
 
 class Scanner:
