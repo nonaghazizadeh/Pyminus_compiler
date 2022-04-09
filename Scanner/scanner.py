@@ -69,7 +69,7 @@ class Scanner:
                             line_tokens += ' ' + str(self.recognize_keyid(''.join(lexeme)))
                             another_char_recognized = True
                             break
-                        elif chars[i] == '#' or chars[i] == '/':
+                        elif chars[i] == enums.Languages.HASHTAG.value or chars[i] == enums.Languages.SLASH.value:
                             idx = i
                             line_tokens += ' ' + str(self.recognize_keyid(''.join(lexeme)))
                             another_char_recognized = True
@@ -107,7 +107,7 @@ class Scanner:
                             idx = i + 1
                             another_char_recognized = True
                             break
-                        elif chars[i] == '#' or chars[i] == '/':
+                        elif chars[i] == enums.Languages.HASHTAG.value or chars[i] == enums.Languages.SLASH.value:
                             idx = i
                             line_tokens += ' ' + str(self.recognize_number(''.join(number_lexeme)))
                             another_char_recognized = True
@@ -120,16 +120,16 @@ class Scanner:
                         line_tokens += ' ' + str(self.recognize_number(''.join(number_lexeme)))
                         break
                     continue
-                elif chars[idx] == '#':
+                elif chars[idx] == enums.Languages.HASHTAG.value:
                     for i in range(idx, len(chars)):
                         idx += 1
-                elif chars[idx] == '/' and idx + 1 < len(chars) and chars[idx + 1] == '*':
+                elif chars[idx] == enums.Languages.SLASH.value and idx + 1 < len(chars) and chars[idx + 1] == enums.Languages.STAR.value:
                     comment_is_continued = True
                 else:
                     idx += 1
             elif comment_is_continued:
                 for i in range(len(chars)):
-                    if chars[i] == '*' and i + 1 < len(chars) and chars[i + 1] == '/':
+                    if chars[i] == enums.Languages.STAR.value and i + 1 < len(chars) and chars[i + 1] == enums.Languages.SLASH.value:
                         idx = i + 2
                         comment_is_continued = False
                         break
