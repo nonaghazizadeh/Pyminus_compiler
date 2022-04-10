@@ -21,3 +21,11 @@ class TokenType(Enum):
     SYMBOL = 2
     KEYWORD = 3
     ID = 4
+
+
+class ErrorType(Enum):
+    INVALID_INPUT = 'Invalid input'
+    UNCLOSED_COMMENT = 'Unclosed comment'
+    UNMATCHED_COMMENT = 'Unmatched comment'
+    INVALID_NUMBER = 'Invalid number'
+    NO_ERROR = 'There is no lexical error.'
