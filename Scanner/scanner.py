@@ -14,6 +14,8 @@ class Scanner:
         self.comment_mode = False
         self.comment_line = 0
         self.comment_buffer = [enums.Languages.SLASH.value, enums.Languages.STAR.value]
+        self.tokens = []
+        self.lineno = 0
 
     def recognize_keyid(self, token):
         if token in enums.Languages.KEYWORDS.value:
@@ -97,7 +99,8 @@ class Scanner:
                 another_char_recognized = True
                 break
             elif chars[i] == enums.Languages.HASHTAG.value or (
-                    chars[i] == enums.Languages.SLASH.value and i+1 < len(chars) and chars[i + 1] == enums.Languages.STAR.value):
+                    chars[i] == enums.Languages.SLASH.value and i + 1 < len(chars) and chars[
+                i + 1] == enums.Languages.STAR.value):
                 idx = i
                 line_tokens += ' (' + str(', '.join(self.recognize_keyid(''.join(lexeme)))) + ")"
                 another_char_recognized = True
@@ -181,7 +184,7 @@ class Scanner:
     def others_dfa(self, chars, idx):
         return idx + 1, ' (' + str(', '.join(self.recognize_invalid_input_error(chars[idx]))) + ")"
 
-    def get_next_token(self, chars, lineno):
+    def go_trough_line(self, chars, lineno):
         idx = 0
         line_tokens = ''
         errors = ''
@@ -202,6 +205,7 @@ class Scanner:
                         errors += res[2]
                     else:
                         line_tokens += res[3]
+                        self.tokens.append(res[3])
                 elif re.search(enums.Regex.LETTER.value, chars[idx]):
                     res = self.keyid_dfa(chars, idx)
                     idx = res[0]
@@ -209,8 +213,10 @@ class Scanner:
                         errors += res[4]
                     elif res[1] and not res[3]:
                         line_tokens += res[5]
+                        self.tokens.append(res[5])
                     else:
                         line_tokens += ' (' + str(', '.join(self.recognize_keyid(''.join(res[2])))) + ")"
+                        self.tokens.append(' (' + str(', '.join(self.recognize_keyid(''.join(res[2])))) + ")")
                         break
                     continue
                 elif re.search(enums.Regex.DIGIT.value, chars[idx]):
@@ -220,8 +226,10 @@ class Scanner:
                         errors += res[4]
                     elif res[1] and not res[3]:
                         line_tokens += res[5]
+                        self.tokens.append(res[5])
                     else:
                         line_tokens += ' (' + str(', '.join(self.recognize_number(''.join(res[2])))) + ")"
+                        self.tokens.append(line_tokens)
                         break
                     continue
                 elif chars[idx] == enums.Languages.HASHTAG.value:
@@ -248,7 +256,7 @@ class Scanner:
         return line_tokens, errors
 
     def get_next_line_tokens(self, lineno, line):
-        res = self.get_next_token(list(line), lineno)
+        res = self.go_trough_line(list(line), lineno)
         tokenized_line = res[0]
         errors = res[1]
         if tokenized_line != '':
@@ -258,8 +266,9 @@ class Scanner:
             self.file_handler.lexical_errors += str(lineno + 1) + ".\t" + errors.lstrip() + "\n"
 
     def get_all_tokens(self):
-        for no, line in enumerate(self.lines):
-            self.get_next_line_tokens(no, line)
+        for line in self.lines:
+            self.get_next_line_tokens(self.lineno, line)
+            self.lineno += 1
         if self.comment_mode:
             if self.comment_line in self.error_lines:
                 self.file_handler.lexical_errors = self.file_handler.lexical_errors[:-1] + " (" + str(', '.join(
@@ -267,5 +276,6 @@ class Scanner:
             else:
                 self.file_handler.lexical_errors += str(self.comment_line) + ".\t(" + str(', '.join(
                     self.recognize_unclosed_comment_error(''.join(self.comment_buffer[0:10]) + '...'))) + ")\n"
-
         self.file_handler.write_files()
+
+
