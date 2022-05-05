@@ -304,6 +304,8 @@ class Scanner:
                 continue
         if token != '':
             return tuple(map(str, token[2:-1].split(', ')))
+        else:
+            return self.get_next_token()
 
     def get_input(self):
         while self.lineno < len(self.lines):

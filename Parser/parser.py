@@ -6,7 +6,6 @@ class Parser:
     def __init__(self):
         self.table = {fi: {} for fi in NON_TERMINAL}
         self.stack = ['$', 'Program']
-        self.current_token = None
 
     def create_table(self):
         for A, v in GRAMMAR.items():
@@ -28,3 +27,19 @@ class Parser:
 
     def parse(self):
         top_of_stack = self.stack.pop()
+        current_token = ''
+        if current_token == top_of_stack == '$':
+            print('SUCCESS')
+            return
+
+        if top_of_stack in NON_TERMINAL:
+            temp = self.table[top_of_stack].get(current_token)
+            if temp is None or temp == 'synch':
+                pass
+            else:
+                temp = temp.split('')
+                temp.reverse()
+                self.stack.extend(temp)
+
+        if current_token == top_of_stack:
+            pass

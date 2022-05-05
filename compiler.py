@@ -8,7 +8,7 @@ from Parser.parser import Parser
 from Scanner.new_version_scanner import Scanner
 
 scanner = Scanner('input.txt')
-scanner.get_all_tokens()
+print(scanner.get_next_token())
 print(scanner.tokens)
 parser = Parser()
 parser.create_table()
