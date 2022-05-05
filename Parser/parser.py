@@ -44,6 +44,7 @@ class Parser:
             depth = tabs_controller.pop()
             if current_token == top_of_stack == '$':
                 # print('ACTION: SUCCESS')
+                output += '\t' * depth + '$'
                 return output
 
             if top_of_stack in NON_TERMINAL:

@@ -16,3 +16,6 @@ print(res)
 #     print(scanner.get_next_token())
 
 # print(parser.table['Relop'])
+
+with open('parse_tree.txt', 'w') as f:
+    f.write(res)
