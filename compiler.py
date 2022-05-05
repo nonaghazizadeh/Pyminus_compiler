@@ -5,12 +5,18 @@ Nona Ghazizadeh 98171007
 
 
 from Parser.parser import Parser
+from anytree import RenderTree
 # from Scanner.new_version_scanner import Scanner
 
 parser = Parser()
 parser.parse()
+
+output = ''
+for pre, fill, node in RenderTree(parser.root):
+    output += "%s%s" % (pre, node.name) + '\n'
 with open('parse_tree.txt', 'w') as f:
-    f.write(parser.parse_tree)
+    f.write(output)
+
 
 with open('syntax_errors.txt', 'w') as f:
     if parser.syntax_error == '':
@@ -18,7 +24,11 @@ with open('syntax_errors.txt', 'w') as f:
     else:
         f.write(parser.syntax_error)
 
-print(parser.parse_tree)
+print('*************************')
+
+# for pre, fill, node in RenderTree(parser.root):
+#     print("%s%s" % (pre, node.name))
+#
 # scanner = Scanner('input.txt')
 # while True:
 #     print(f'{scanner.get_next_token()} {scanner.lineno}')

@@ -3,12 +3,14 @@ from Parser.helper import get_first, extract_token
 
 from Scanner.new_version_scanner import Scanner
 
+from anytree import Node
+
 
 class Parser:
     def __init__(self):
         self.table = {fi: {} for fi in NON_TERMINAL}
-        self.stack = ['$', 'Program']
-        self.parse_tree = ''
+        self.root = Node('Program')
+        self.stack = [Node('$', self.root), self.root]
         self.syntax_error = ''
         self.scanner = Scanner('input.txt')
         self.create_table()
@@ -33,66 +35,64 @@ class Parser:
                     self.table[nt][fo] = 'synch'
 
     def parse(self):
-        tabs_controller = [1, 0]
         scanner_res = self.scanner.get_next_token()
         current_token = extract_token(scanner_res)
         while True:
             print(''.join(['-' for _ in range(50)]))
-            print(f'STACK: {self.stack}')
+            print(f'STACK: {[i.name for i in self.stack]}')
             print(f'CURRENT_TOKEN: {current_token}')
 
             top_of_stack = self.stack.pop()
-            depth = tabs_controller.pop()
-            if current_token == top_of_stack == '$':
+            if current_token == top_of_stack.name == '$':
                 print('ACTION: SUCCESS')
-                self.parse_tree += '\t' * depth + '$'
+                top_of_stack.parent = None
+                top_of_stack.parent = self.root
                 return
 
-            if top_of_stack in NON_TERMINAL:
-                if current_token in self.table[top_of_stack]:
-                    temp = self.table[top_of_stack][current_token]
+            if top_of_stack.name in NON_TERMINAL:
+                if current_token in self.table[top_of_stack.name]:
+                    temp = self.table[top_of_stack.name][current_token]
                     if temp == 'synch':
                         print('SYNCH ERROR')
-                        self.recover_error(err_type=2, lineno=self.scanner.lineno, top_of_stack=top_of_stack)
+                        self.recover_error(err_type=2, lineno=self.scanner.lineno, top_of_stack=top_of_stack.name)
+                        top_of_stack.parent = None
                         continue
 
                     elif temp is None:
                         print(f'ACTION: EPSILON')
-                        self.parse_tree += '\t' * depth + top_of_stack + '\n'
-                        self.parse_tree += '\t' * (depth + 1) + 'epsilon' + '\n'
+                        Node('epsilon', parent=top_of_stack)
 
                     else:
                         print(f'ACTION: {temp}')
-                        temp = temp.split(' ')
-                        temp.reverse()
-                        self.stack.extend(temp)
+                        self.stack.extend([Node(name, parent=top_of_stack) for name in temp.split(' ')][::-1])
 
-                        self.parse_tree += '\t' * depth + top_of_stack + '\n'
-                        tabs_controller.extend([depth + 1 for _ in range(len(temp))])
                 else:
                     print('EMPTY ERROR')
                     self.recover_error(err_type=1, lineno=self.scanner.lineno, current_token=current_token)
                     if current_token == '$':
+                        top_of_stack.parent = None
+                        for i in self.stack:
+                            i.parent = None
                         return
+
                     scanner_res = self.scanner.get_next_token()
                     current_token = extract_token(scanner_res)
                     self.stack.append(top_of_stack)
-                    tabs_controller.append(depth)
                     continue
 
-            if current_token == top_of_stack:
+            if current_token == top_of_stack.name:
                 print('ACTION: TERMINAL')
                 token_type = scanner_res[0] if scanner_res[0] != 'NUMBER' else 'NUM'
                 token_id = scanner_res[1]
-
-                self.parse_tree += '\t' * depth + '(' + token_type + ', ' + token_id + ')' + '\n'
+                top_of_stack.name = '(' + token_type + ', ' + token_id + ')'
                 scanner_res = self.scanner.get_next_token()
                 current_token = extract_token(scanner_res)
 
-            elif top_of_stack in TERMINAL:
+            elif top_of_stack.name in TERMINAL:
                 print('DID NOT MATCH!')
 
-                self.recover_error(err_type=3, lineno=self.scanner.lineno, top_of_stack=top_of_stack)
+                self.recover_error(err_type=3, lineno=self.scanner.lineno, top_of_stack=top_of_stack.name)
+                top_of_stack.parent = None
                 continue
 
     def recover_error(self, err_type: int, lineno, current_token=None, top_of_stack=None):
