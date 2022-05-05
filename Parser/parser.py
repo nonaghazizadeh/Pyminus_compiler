@@ -31,35 +31,51 @@ class Parser:
         scanner = Scanner('input.txt')
         self.create_table()
         self.add_synch()
-        current_token = extract_token(scanner.get_next_token())
+        tabs_controller = [1, 0]
+        output = ''
+        scanner_res = scanner.get_next_token()
+        current_token = extract_token(scanner_res)
         while True:
-            print(f'STACK: {self.stack}')
-            print(f'CURRENT_TOKEN: {current_token}')
+            # print(f'STACK: {self.stack}')
+            # print(f'CURRENT_TOKEN: {current_token}')
+            # print(tabs_controller)
 
             top_of_stack = self.stack.pop()
+            depth = tabs_controller.pop()
             if current_token == top_of_stack == '$':
-                print('ACTION: SUCCESS')
-                return
+                # print('ACTION: SUCCESS')
+                return output
 
             if top_of_stack in NON_TERMINAL:
                 if current_token in self.table[top_of_stack]:
                     temp = self.table[top_of_stack][current_token]
                     if temp == 'synch':
-                        print('SYNCH ERROR')
+                        # print('SYNCH ERROR')
                         raise RuntimeError
                     elif temp is None:
-                        print(f'ACTION: EPSILON')
+                        # print(f'ACTION: EPSILON')
+                        output += '\t' * depth + top_of_stack + '\n'
+                        output += '\t' * (depth + 1) + 'epsilon' + '\n'
+
                     else:
-                        print(f'ACTION: {temp}')
+                        # print(f'ACTION: {temp}')
                         temp = temp.split(' ')
                         temp.reverse()
                         self.stack.extend(temp)
+
+                        output += '\t' * depth + top_of_stack + '\n'
+                        tabs_controller.extend([depth + 1 for _ in range(len(temp))])
                 else:
-                    print('EMPTY ERROR')
+                    # print('EMPTY ERROR')
                     raise RuntimeError
 
             if current_token == top_of_stack:
-                print('ACTION: TERMINAL')
-                current_token = extract_token(scanner.get_next_token())
+                # print('ACTION: TERMINAL')
+                token_type = scanner_res[0] if scanner_res[0] != 'NUMBER' else 'NUM'
+                token_id = scanner_res[1]
 
-            print(''.join(['-' for _ in range(30)]))
+                output += '\t' * depth + '(' + token_type + ', ' + token_id + ')' + '\n'
+                scanner_res = scanner.get_next_token()
+                current_token = extract_token(scanner_res)
+
+            # print(''.join(['-' for _ in range(50)]))

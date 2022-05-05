@@ -9,7 +9,8 @@ from Parser.parser import Parser
 
 
 parser = Parser()
-parser.parse()
+res = parser.parse()
+print(res)
 # scanner = Scanner('input.txt')
 # while True:
 #     print(scanner.get_next_token())
