@@ -18,6 +18,7 @@ with open('syntax_errors.txt', 'w') as f:
     else:
         f.write(parser.syntax_error)
 
+print(parser.parse_tree)
 # scanner = Scanner('input.txt')
 # while True:
 #     print(f'{scanner.get_next_token()} {scanner.lineno}')

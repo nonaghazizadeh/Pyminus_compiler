@@ -1,4 +1,4 @@
-from Parser.enums import FIRST, FOLLOW, TERMINAL, NON_TERMINAL, GRAMMAR
+from Parser.enums import FOLLOW, TERMINAL, NON_TERMINAL, GRAMMAR
 from Parser.helper import get_first, extract_token
 
 from Scanner.new_version_scanner import Scanner
