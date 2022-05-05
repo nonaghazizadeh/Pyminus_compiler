@@ -8,6 +8,11 @@ class Parser:
     def __init__(self):
         self.table = {fi: {} for fi in NON_TERMINAL}
         self.stack = ['$', 'Program']
+        self.parse_tree = ''
+        self.syntax_error = ''
+        self.scanner = Scanner('input.txt')
+        self.create_table()
+        self.add_synch()
 
     def create_table(self):
         for A, v in GRAMMAR.items():
@@ -28,55 +33,75 @@ class Parser:
                     self.table[nt][fo] = 'synch'
 
     def parse(self):
-        scanner = Scanner('input.txt')
-        self.create_table()
-        self.add_synch()
         tabs_controller = [1, 0]
-        output = ''
-        scanner_res = scanner.get_next_token()
+        scanner_res = self.scanner.get_next_token()
         current_token = extract_token(scanner_res)
         while True:
-            # print(f'STACK: {self.stack}')
-            # print(f'CURRENT_TOKEN: {current_token}')
-            # print(tabs_controller)
+            print(''.join(['-' for _ in range(50)]))
+            print(f'STACK: {self.stack}')
+            print(f'CURRENT_TOKEN: {current_token}')
 
             top_of_stack = self.stack.pop()
             depth = tabs_controller.pop()
             if current_token == top_of_stack == '$':
-                # print('ACTION: SUCCESS')
-                output += '\t' * depth + '$'
-                return output
+                print('ACTION: SUCCESS')
+                self.parse_tree += '\t' * depth + '$'
+                return
 
             if top_of_stack in NON_TERMINAL:
                 if current_token in self.table[top_of_stack]:
                     temp = self.table[top_of_stack][current_token]
                     if temp == 'synch':
-                        # print('SYNCH ERROR')
-                        raise RuntimeError
+                        print('SYNCH ERROR')
+                        self.recover_error(err_type=2, lineno=self.scanner.lineno, top_of_stack=top_of_stack)
+                        continue
+
                     elif temp is None:
-                        # print(f'ACTION: EPSILON')
-                        output += '\t' * depth + top_of_stack + '\n'
-                        output += '\t' * (depth + 1) + 'epsilon' + '\n'
+                        print(f'ACTION: EPSILON')
+                        self.parse_tree += '\t' * depth + top_of_stack + '\n'
+                        self.parse_tree += '\t' * (depth + 1) + 'epsilon' + '\n'
 
                     else:
-                        # print(f'ACTION: {temp}')
+                        print(f'ACTION: {temp}')
                         temp = temp.split(' ')
                         temp.reverse()
                         self.stack.extend(temp)
 
-                        output += '\t' * depth + top_of_stack + '\n'
+                        self.parse_tree += '\t' * depth + top_of_stack + '\n'
                         tabs_controller.extend([depth + 1 for _ in range(len(temp))])
                 else:
-                    # print('EMPTY ERROR')
-                    raise RuntimeError
+                    print('EMPTY ERROR')
+                    self.recover_error(err_type=1, lineno=self.scanner.lineno, current_token=current_token)
+                    if current_token == '$':
+                        return
+                    scanner_res = self.scanner.get_next_token()
+                    current_token = extract_token(scanner_res)
+                    self.stack.append(top_of_stack)
+                    tabs_controller.append(depth)
+                    continue
 
             if current_token == top_of_stack:
-                # print('ACTION: TERMINAL')
+                print('ACTION: TERMINAL')
                 token_type = scanner_res[0] if scanner_res[0] != 'NUMBER' else 'NUM'
                 token_id = scanner_res[1]
 
-                output += '\t' * depth + '(' + token_type + ', ' + token_id + ')' + '\n'
-                scanner_res = scanner.get_next_token()
+                self.parse_tree += '\t' * depth + '(' + token_type + ', ' + token_id + ')' + '\n'
+                scanner_res = self.scanner.get_next_token()
                 current_token = extract_token(scanner_res)
 
-            # print(''.join(['-' for _ in range(50)]))
+            elif top_of_stack in TERMINAL:
+                print('DID NOT MATCH!')
+
+                self.recover_error(err_type=3, lineno=self.scanner.lineno, top_of_stack=top_of_stack)
+                continue
+
+    def recover_error(self, err_type: int, lineno, current_token=None, top_of_stack=None):
+        if err_type == 1:
+            if current_token == '$':
+                self.syntax_error += '#' + str(lineno + 1) + ' : syntax error, Unexpected EOF' + '\n'
+            else:
+                self.syntax_error += '#' + str(lineno + 1) + ' : syntax error, illegal ' + current_token + '\n'
+        if err_type == 2:
+            self.syntax_error += '#' + str(lineno + 1) + ' : syntax error, missing ' + top_of_stack + '\n'
+        if err_type == 3:
+            self.syntax_error += '#' + str(lineno + 1) + ' : syntax error, missing ' + top_of_stack + '\n'
