@@ -5,7 +5,7 @@ from Parser.helper import get_first
 class Parser:
     def __init__(self):
         self.table = {fi: {} for fi in NON_TERMINAL}
-        self.stack = []
+        self.stack = ['Program', '$']
 
     def create_table(self):
         for A, v in GRAMMAR.items():
@@ -18,3 +18,9 @@ class Parser:
                 if None in firsts:
                     for t in FOLLOW[A]:
                         self.table[A][t] = alpha
+
+    def add_synch(self):
+        for nt in FOLLOW:
+            for fo in FOLLOW[nt]:
+                if self.table[nt].get(fo) is None:
+                    self.table[nt][fo] = 'synch'
