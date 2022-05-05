@@ -5,7 +5,8 @@ from Parser.helper import get_first
 class Parser:
     def __init__(self):
         self.table = {fi: {} for fi in NON_TERMINAL}
-        self.stack = ['Program', '$']
+        self.stack = ['$', 'Program']
+        self.current_token = None
 
     def create_table(self):
         for A, v in GRAMMAR.items():
@@ -24,3 +25,6 @@ class Parser:
             for fo in FOLLOW[nt]:
                 if self.table[nt].get(fo) is None:
                     self.table[nt][fo] = 'synch'
+
+    def parse(self):
+        top_of_stack = self.stack.pop()
