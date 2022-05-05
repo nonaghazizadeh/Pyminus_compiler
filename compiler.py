@@ -4,8 +4,8 @@ Nona Ghazizadeh 98171007
 """
 
 
-from Scanner.scanner import Scanner
 from Parser.parser import Parser
+from Scanner.new_version_scanner import Scanner
 
 scanner = Scanner('input.txt')
 scanner.get_all_tokens()

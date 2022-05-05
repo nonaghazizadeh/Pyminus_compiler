@@ -266,6 +266,7 @@ class Scanner:
             self.file_handler.lexical_errors += str(lineno + 1) + ".\t" + errors.lstrip() + "\n"
 
     def get_all_tokens(self):
+        print(self.lines)
         for line in self.lines:
             self.get_next_line_tokens(self.lineno, line)
             self.lineno += 1
