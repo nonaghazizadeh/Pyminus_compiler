@@ -277,10 +277,6 @@ class Scanner:
             else:
                 self.file_handler.lexical_errors += str(self.comment_line) + ".\t(" + str(', '.join(
                     self.recognize_unclosed_comment_error(''.join(self.comment_buffer[0:10]) + '...'))) + ")\n"
-        # self.file_handler.write_files()
+        self.file_handler.write_files()
 
-    def get_next_token(self):
-        if not len(self.tokens):
-            return '$'
 
-        return self.tokens.pop(0)

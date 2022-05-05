@@ -1,5 +1,3 @@
-from itertools import chain
-
 FIRST = {
     "Program": ["break", "continue", "ID", "return", "global", "def", "if", "while", None],
     "Statements": ["break", "continue", "ID", "return", "global", "def", "if", "while", None],

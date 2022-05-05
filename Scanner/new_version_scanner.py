@@ -302,7 +302,10 @@ class Scanner:
                     self.lineno += 1
                     break
                 continue
-        if token != '':
+
+        if token == '' and self.lineno == len(self.lines):
+            return "$"
+        elif token != '':
             return tuple(map(str, token[2:-1].split(', ')))
         else:
             return self.get_next_token()
@@ -312,6 +315,7 @@ class Scanner:
             res = self.get_next_token()
             if res is not None:
                 print(res)
+        print("$")
 
     def get_all_tokens(self):
         self.get_input()
