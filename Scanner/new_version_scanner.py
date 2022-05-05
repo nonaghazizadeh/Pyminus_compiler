@@ -11,11 +11,14 @@ class Scanner:
         self.lines = self.file_handler.read_input_file()
         self.symbol_table = self.file_handler.symbol_table
         self.error_lines = []
+        self.token_lines = []
         self.comment_mode = False
         self.comment_line = 0
         self.comment_buffer = [enums.Languages.SLASH.value, enums.Languages.STAR.value]
         self.tokens = []
+        self.errors = ''
         self.lineno = 0
+        self.idx = 0
 
     def recognize_keyid(self, token):
         if token in enums.Languages.KEYWORDS.value:
@@ -171,10 +174,10 @@ class Scanner:
                 break
         return idx, another_char_recognized, number_lexeme, bool(errors), errors, line_tokens
 
-    @staticmethod
-    def hashtag_comment_dfa(chars, idx):
+    def hashtag_comment_dfa(self, chars, idx):
         for i in range(idx, len(chars)):
             idx += 1
+        self.lineno += 1
         return idx
 
     def slash_star_comment_dfa(self, lineno):
@@ -184,91 +187,132 @@ class Scanner:
     def others_dfa(self, chars, idx):
         return idx + 1, ' (' + str(', '.join(self.recognize_invalid_input_error(chars[idx]))) + ")"
 
-    def go_trough_line(self, chars, lineno):
-        idx = 0
-        line_tokens = ''
-        errors = ''
-        while idx < len(chars):
+    def add_to_files(self):
+        if len(self.tokens) != 0:
+            if self.lineno + 1 not in self.token_lines:
+                self.token_lines.append(self.lineno + 1)
+                self.file_handler.tokenized += str(self.lineno + 1) + ".\t" + ''.join(self.tokens).lstrip() + "\n"
+            else:
+                self.file_handler.tokenized = self.file_handler.tokenized[:-1]
+                self.file_handler.tokenized += ''.join(self.tokens) + "\n"
+        if self.errors != '':
+            self.error_lines.append(self.lineno + 1)
+            self.file_handler.lexical_errors += str(self.lineno + 1) + ".\t" + self.errors.lstrip() + "\n"
+
+    def clear_data(self):
+        self.tokens = []
+        self.errors = ''
+        self.idx = 0
+
+    def get_next_token(self):
+        token = ''
+        founded = False
+        chars = self.lines[self.lineno]
+        while not founded:
             if not self.comment_mode:
-                if chars[idx] in enums.Languages.WHITESPACES.value:
-                    idx = self.whitespace_dfa(idx)
+                if self.idx >= len(chars):
+                    self.add_to_files()
+                    self.clear_data()
+                    self.lineno += 1
+                    token = ''
+                    founded = True
+                elif chars[self.idx] == '\n':
+                    self.add_to_files()
+                    self.clear_data()
+                    self.lineno += 1
+                    token = ''
+                    founded = False
+                    if self.lineno < len(self.lines):
+                        chars = self.lines[self.lineno]
+                    else:
+                        break
+                elif chars[self.idx] in enums.Languages.WHITESPACES.value:
+                    self.idx = self.whitespace_dfa(self.idx)
                     continue
-                elif chars[idx] == enums.Languages.STAR.value and idx + 1 < len(chars) and chars[
-                    idx + 1] == enums.Languages.SLASH.value:
-                    res = self.end_comment_dfa(chars, idx)
-                    idx = res[0]
-                    errors += res[1]
-                elif chars[idx] in enums.Languages.SYMBOLS.value:
-                    res = self.symbol_dfa(chars, idx)
-                    idx = res[0]
+                elif chars[self.idx] == enums.Languages.STAR.value and self.idx + 1 < len(chars) and chars[
+                    self.idx + 1] == enums.Languages.SLASH.value:
+                    res = self.end_comment_dfa(chars, self.idx)
+                    self.idx = res[0]
+                    self.errors += res[1]
+                elif chars[self.idx] in enums.Languages.SYMBOLS.value:
+                    res = self.symbol_dfa(chars, self.idx)
+                    self.idx = res[0]
                     if res[1]:
-                        errors += res[2]
+                        self.errors += res[2]
                     else:
-                        line_tokens += res[3]
-                        self.tokens.append(res[3])
-                elif re.search(enums.Regex.LETTER.value, chars[idx]):
-                    res = self.keyid_dfa(chars, idx)
-                    idx = res[0]
+                        token = res[3]
+                        self.tokens.append(token)
+                        founded = True
+                elif re.search(enums.Regex.LETTER.value, chars[self.idx]):
+                    res = self.keyid_dfa(chars, self.idx)
+                    self.idx = res[0]
                     if res[1] and res[3]:
-                        errors += res[4]
+                        self.errors += res[4]
                     elif res[1] and not res[3]:
-                        line_tokens += res[5]
-                        self.tokens.append(res[5])
+                        token = res[5]
+                        self.tokens.append(token)
+                        founded = True
                     else:
-                        line_tokens += ' (' + str(', '.join(self.recognize_keyid(''.join(res[2])))) + ")"
-                        self.tokens.append(' (' + str(', '.join(self.recognize_keyid(''.join(res[2])))) + ")")
-                        break
+                        token = ' (' + str(', '.join(self.recognize_keyid(''.join(res[2])))) + ")"
+                        self.tokens.append(token)
+                        self.idx += len(''.join(res[2]))
+                        founded = True
                     continue
-                elif re.search(enums.Regex.DIGIT.value, chars[idx]):
-                    res = self.number_dfa(chars, idx)
-                    idx = res[0]
+                elif re.search(enums.Regex.DIGIT.value, chars[self.idx]):
+                    res = self.number_dfa(chars, self.idx)
+                    self.idx = res[0]
                     if res[1] and res[3]:
-                        errors += res[4]
+                        self.errors += res[4]
                     elif res[1] and not res[3]:
-                        line_tokens += res[5]
+                        token = res[5]
                         self.tokens.append(res[5])
+                        founded = True
                     else:
-                        line_tokens += ' (' + str(', '.join(self.recognize_number(''.join(res[2])))) + ")"
-                        self.tokens.append(line_tokens)
-                        break
+                        token = ' (' + str(', '.join(self.recognize_number(''.join(res[2])))) + ")"
+                        self.tokens.append(token)
+                        self.idx += len(''.join(res[2]))
+                        founded = True
                     continue
-                elif chars[idx] == enums.Languages.HASHTAG.value:
-                    idx = self.hashtag_comment_dfa(chars, idx)
-                elif chars[idx] == enums.Languages.SLASH.value and idx + 1 < len(chars) and chars[
-                    idx + 1] == enums.Languages.STAR.value:
-                    idx += 2
-                    self.slash_star_comment_dfa(lineno)
+                elif chars[self.idx] == enums.Languages.HASHTAG.value:
+                    self.add_to_files()
+                    self.clear_data()
+                    self.lineno += 1
+                    break
+                elif chars[self.idx] == enums.Languages.SLASH.value and self.idx + 1 < len(chars) and chars[
+                    self.idx + 1] == enums.Languages.STAR.value:
+                    self.idx += 2
+                    self.slash_star_comment_dfa(self.lineno)
                 else:
-                    res = self.others_dfa(chars, idx)
-                    idx = res[0]
-                    errors += res[1]
+                    res = self.others_dfa(chars, self.idx)
+                    self.idx = res[0]
+                    self.errors += res[1]
             elif self.comment_mode:
-                for i in range(idx, len(chars)):
+                chars = self.lines[self.lineno]
+                self.add_to_files()
+                for i in range(self.idx, len(chars)):
                     self.comment_buffer.append(chars[i])
                     if chars[i] == enums.Languages.STAR.value and i + 1 < len(chars) and chars[
                         i + 1] == enums.Languages.SLASH.value:
-                        idx = i + 2
+                        self.clear_data()
+                        self.idx = i + 2
                         self.comment_mode = False
                         break
                 if self.comment_mode:
+                    self.clear_data()
+                    self.lineno += 1
                     break
                 continue
-        return line_tokens, errors
+        if token != '':
+            return tuple(map(str, token[2:-1].split(', ')))
 
-    def get_next_line_tokens(self, lineno, line):
-        res = self.go_trough_line(list(line), lineno)
-        tokenized_line = res[0]
-        errors = res[1]
-        if tokenized_line != '':
-            self.file_handler.tokenized += str(lineno + 1) + ".\t" + tokenized_line.lstrip() + "\n"
-        if errors != '':
-            self.error_lines.append(lineno + 1)
-            self.file_handler.lexical_errors += str(lineno + 1) + ".\t" + errors.lstrip() + "\n"
+    def get_input(self):
+        while self.lineno < len(self.lines):
+            res = self.get_next_token()
+            if res is not None:
+                print(res)
 
     def get_all_tokens(self):
-        for line in self.lines:
-            self.get_next_line_tokens(self.lineno, line)
-            self.lineno += 1
+        self.get_input()
         if self.comment_mode:
             if self.comment_line in self.error_lines:
                 self.file_handler.lexical_errors = self.file_handler.lexical_errors[:-1] + " (" + str(', '.join(
@@ -277,5 +321,3 @@ class Scanner:
                 self.file_handler.lexical_errors += str(self.comment_line) + ".\t(" + str(', '.join(
                     self.recognize_unclosed_comment_error(''.join(self.comment_buffer[0:10]) + '...'))) + ")\n"
         self.file_handler.write_files()
-
-
