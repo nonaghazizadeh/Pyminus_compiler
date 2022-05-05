@@ -21,3 +21,14 @@ def get_first(alpha: str):
 
     res.add(None)
     return res
+
+
+def extract_token(t):
+    if t == '$':
+        return '$'
+    elif t[0] == 'ID':
+        return 'ID'
+    elif t[0] == 'NUMBER':
+        return 'NUM'
+    else:
+        return t[1]

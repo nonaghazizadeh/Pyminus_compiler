@@ -304,6 +304,7 @@ class Scanner:
                 continue
 
         if token == '' and self.lineno == len(self.lines):
+            self.lineno -= 1
             return "$"
         elif token != '':
             return tuple(map(str, token[2:-1].split(', ')))
