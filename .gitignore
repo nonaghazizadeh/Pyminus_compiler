@@ -6,3 +6,5 @@ input.txt
 symbol_table.txt
 tokens.txt
 lexical_errors.txt
+parse_tree.txt
+syntax_errors.txt
