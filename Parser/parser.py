@@ -1,5 +1,7 @@
 from Parser.enums import FIRST, FOLLOW, TERMINAL, NON_TERMINAL, GRAMMAR
-from Parser.helper import get_first
+from Parser.helper import get_first, extract_token
+
+from Scanner.new_version_scanner import Scanner
 
 
 class Parser:
@@ -22,24 +24,42 @@ class Parser:
     def add_synch(self):
         for nt in FOLLOW:
             for fo in FOLLOW[nt]:
-                if self.table[nt].get(fo) is None:
+                if fo not in self.table[nt]:
                     self.table[nt][fo] = 'synch'
 
     def parse(self):
-        top_of_stack = self.stack.pop()
-        current_token = ''
-        if current_token == top_of_stack == '$':
-            print('SUCCESS')
-            return
+        scanner = Scanner('input.txt')
+        self.create_table()
+        self.add_synch()
+        current_token = extract_token(scanner.get_next_token())
+        while True:
+            print(f'STACK: {self.stack}')
+            print(f'CURRENT_TOKEN: {current_token}')
 
-        if top_of_stack in NON_TERMINAL:
-            temp = self.table[top_of_stack].get(current_token)
-            if temp is None or temp == 'synch':
-                pass
-            else:
-                temp = temp.split('')
-                temp.reverse()
-                self.stack.extend(temp)
+            top_of_stack = self.stack.pop()
+            if current_token == top_of_stack == '$':
+                print('ACTION: SUCCESS')
+                return
 
-        if current_token == top_of_stack:
-            pass
+            if top_of_stack in NON_TERMINAL:
+                if current_token in self.table[top_of_stack]:
+                    temp = self.table[top_of_stack][current_token]
+                    if temp == 'synch':
+                        print('SYNCH ERROR')
+                        raise RuntimeError
+                    elif temp is None:
+                        print(f'ACTION: EPSILON')
+                    else:
+                        print(f'ACTION: {temp}')
+                        temp = temp.split(' ')
+                        temp.reverse()
+                        self.stack.extend(temp)
+                else:
+                    print('EMPTY ERROR')
+                    raise RuntimeError
+
+            if current_token == top_of_stack:
+                print('ACTION: TERMINAL')
+                current_token = extract_token(scanner.get_next_token())
+
+            print(''.join(['-' for _ in range(30)]))
