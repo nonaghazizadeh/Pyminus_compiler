@@ -32,3 +32,8 @@ print('*************************')
 # scanner = Scanner('input.txt')
 # while True:
 #     print(f'{scanner.get_next_token()} {scanner.lineno}')
+
+# from Scanner.pre_version_scanner import Scanner
+#
+# scanner = Scanner('input.txt')
+# scanner.get_all_tokens()

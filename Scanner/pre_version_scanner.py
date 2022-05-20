@@ -74,6 +74,8 @@ class Scanner:
             if chars[idx] == enums.Languages.SLASH.value and idx + 1 < len(chars) and chars[
                 idx + 1] == enums.Languages.STAR.value:
                 line_tokens += ' (' + str(', '.join(self.recognize_symbol(current_token))) + ')'
+            elif chars[idx] in enums.Languages.SYMBOLS.value:
+                line_tokens += ' (' + str(', '.join(self.recognize_symbol(current_token))) + ')'
             else:
                 errors += ' (' + str(
                     ', '.join(self.recognize_invalid_input_error(current_token + chars[idx]))) + ")"
