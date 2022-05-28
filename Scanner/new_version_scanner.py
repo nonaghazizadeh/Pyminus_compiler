@@ -24,6 +24,7 @@ class Scanner:
         self.symbol_table = {self.current_func: None}
         self.is_in_func = False
         self.current_state = 0
+        self.all_functions_name = []
 
     def recognize_keyid(self, token):
         if token in enums.Languages.KEYWORDS.value:
@@ -130,12 +131,17 @@ class Scanner:
 
         if self.is_in_func:
             self.symbol_table[lexeme] = None
+            self.all_functions_name.append(lexeme)
             self.is_in_func = False
         elif not self.is_in_func and lexeme != "def":
             self.symbol_table[lexeme] = self.current_state
             self.current_state += 1
         if lexeme == "def":
-            self.symbol_table = {k: v for k, v in self.symbol_table.items() if v is None}
+            temp_symbol_table = self.symbol_table.copy()
+            for k, v in self.symbol_table.items():
+                if k not in self.all_functions_name:
+                    del temp_symbol_table[k]
+            self.symbol_table = temp_symbol_table
             self.is_in_func = True
             self.current_state = 0
 
