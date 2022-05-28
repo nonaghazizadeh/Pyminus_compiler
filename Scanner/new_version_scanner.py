@@ -135,7 +135,7 @@ class Scanner:
             self.symbol_table[lexeme] = self.current_state
             self.current_state += 1
         if lexeme == "def":
-            self.symbol_table = {}
+            self.symbol_table = {k: v for k, v in self.symbol_table.items() if v is None}
             self.is_in_func = True
             self.current_state = 0
 
