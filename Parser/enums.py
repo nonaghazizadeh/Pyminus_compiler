@@ -81,7 +81,7 @@ GRAMMAR = {
     "Return_stmt": ["return Return_Value"],
     "Return_Value": ["Expression", None],
     "Global_stmt": ["global ID"],
-    "Function_def": ["def ID ( Params ) : Statements"],
+    "Function_def": ["def #update_method_addr ID ( Params ) : Statements"],
     "Params": ["ID Params_Prime", None],
     "Params_Prime": [", ID Params_Prime", None],
     "If_stmt": ["if Relational_Expression : Statements Else_block"],

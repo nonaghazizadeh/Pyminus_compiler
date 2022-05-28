@@ -11,29 +11,19 @@ from anytree import RenderTree
 parser = Parser()
 parser.parse()
 
-output = ''
-for pre, fill, node in RenderTree(parser.root):
-    output += "%s%s" % (pre, node.name) + '\n'
-with open('parse_tree.txt', 'w') as f:
-    f.write(output)
-
-
-with open('syntax_errors.txt', 'w') as f:
-    if parser.syntax_error == '':
-        f.write('There is no syntax error.')
-    else:
-        f.write(parser.syntax_error)
-
-print('*************************')
-
+# output = ''
 # for pre, fill, node in RenderTree(parser.root):
-#     print("%s%s" % (pre, node.name))
-#
-# scanner = Scanner('input.txt')
-# while True:
-#     print(f'{scanner.get_next_token()} {scanner.lineno}')
+#     output += "%s%s" % (pre, node.name) + '\n'
+# with open('parse_tree.txt', 'w') as f:
+#     f.write(output)
 
-# from Scanner.pre_version_scanner import Scanner
-#
-# scanner = Scanner('input.txt')
-# scanner.get_all_tokens()
+
+# with open('syntax_errors.txt', 'w') as f:
+#     if parser.syntax_error == '':
+#         f.write('There is no syntax error.')
+#     else:
+#         f.write(parser.syntax_error)
+
+# print('*************************')
+
+print(parser.scanner.symbol_table)

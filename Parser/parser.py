@@ -2,6 +2,7 @@ from Parser.enums import FOLLOW, TERMINAL, NON_TERMINAL, GRAMMAR
 from Parser.helper import get_first, extract_token
 
 from Scanner.new_version_scanner import Scanner
+from InterCodeGenerator.generator import InterCodeGen
 
 from anytree import Node
 
@@ -15,6 +16,9 @@ class Parser:
         self.scanner = Scanner('input.txt')
         self.create_table()
         self.add_synch()
+
+        # Added For ICG
+        self.inter_code_gen = InterCodeGen(self.scanner)
 
     def create_table(self):
         for A, v in GRAMMAR.items():
@@ -38,13 +42,19 @@ class Parser:
         scanner_res = self.scanner.get_next_token()
         current_token = extract_token(scanner_res)
         while True:
-            print(''.join(['-' for _ in range(50)]))
-            print(f'STACK: {[i.name for i in self.stack]}')
-            print(f'CURRENT_TOKEN: {current_token}')
+            # print(''.join(['-' for _ in range(50)]))
+            # print(f'STACK: {[i.name for i in self.stack]}')
+            # print(f'CURRENT_TOKEN: {current_token}')
 
             top_of_stack = self.stack.pop()
+
+            # Added for ICG
+            if top_of_stack.name[0] == '#':
+                self.inter_code_gen.generate(top_of_stack.name, scanner_res[1])
+                continue
+
             if current_token == top_of_stack.name == '$':
-                print('ACTION: SUCCESS')
+                # print('ACTION: SUCCESS')
                 top_of_stack.parent = None
                 top_of_stack.parent = self.root
                 return
@@ -53,21 +63,21 @@ class Parser:
                 if current_token in self.table[top_of_stack.name]:
                     temp = self.table[top_of_stack.name][current_token]
                     if temp == 'synch':
-                        print('SYNCH ERROR')
+                        # print('SYNCH ERROR')
                         self.recover_error(err_type=2, lineno=self.scanner.lineno, top_of_stack=top_of_stack.name)
                         top_of_stack.parent = None
                         continue
 
                     elif temp is None:
-                        print(f'ACTION: EPSILON')
+                        # print(f'ACTION: EPSILON')
                         Node('epsilon', parent=top_of_stack)
 
                     else:
-                        print(f'ACTION: {temp}')
+                        # print(f'ACTION: {temp}')
                         self.stack.extend([Node(name, parent=top_of_stack) for name in temp.split(' ')][::-1])
 
                 else:
-                    print('EMPTY ERROR')
+                    # print('EMPTY ERROR')
                     self.recover_error(err_type=1, lineno=self.scanner.lineno, current_token=current_token)
                     if current_token == '$':
                         top_of_stack.parent = None
@@ -81,7 +91,7 @@ class Parser:
                     continue
 
             if current_token == top_of_stack.name:
-                print('ACTION: TERMINAL')
+                # print('ACTION: TERMINAL')
                 token_type = scanner_res[0] if scanner_res[0] != 'NUMBER' else 'NUM'
                 token_id = scanner_res[1]
                 top_of_stack.name = '(' + token_type + ', ' + token_id + ')'
@@ -89,7 +99,7 @@ class Parser:
                 current_token = extract_token(scanner_res)
 
             elif top_of_stack.name in TERMINAL:
-                print('DID NOT MATCH!')
+                # print('DID NOT MATCH!')
 
                 self.recover_error(err_type=3, lineno=self.scanner.lineno, top_of_stack=top_of_stack.name)
                 top_of_stack.parent = None
