@@ -9,7 +9,7 @@ class Scanner:
     def __init__(self, file):
         self.file_handler = FileHandler(file)
         self.lines = self.file_handler.read_input_file()
-        self.symbol_table = self.file_handler.symbol_table
+        self.scanner_symbol_table = self.file_handler.symbol_table
         self.error_lines = []
         self.token_lines = []
         self.comment_mode = False
@@ -19,12 +19,18 @@ class Scanner:
         self.errors = ''
         self.lineno = 0
         self.idx = 0
+        self.symbol_table = {}
+        self.current_func = 'GLOBAL'
+        self.symbol_table = {self.current_func: None}
+        self.is_in_func = False
+        self.current_state = 0
+        self.all_functions_name = []
 
     def recognize_keyid(self, token):
         if token in enums.Languages.KEYWORDS.value:
             return 'KEYWORD', token
         else:
-            self.symbol_table.add_element(token)
+            self.scanner_symbol_table.add_element(token)
             return 'ID', token
 
     @staticmethod
@@ -122,6 +128,23 @@ class Scanner:
                 idx = i + 1
                 another_char_recognized = True
                 break
+
+        if self.is_in_func:
+            self.symbol_table[lexeme] = None
+            self.all_functions_name.append(lexeme)
+            self.is_in_func = False
+        elif not self.is_in_func and lexeme != "def":
+            self.symbol_table[lexeme] = self.current_state
+            self.current_state += 1
+        if lexeme == "def":
+            temp_symbol_table = self.symbol_table.copy()
+            for k, v in self.symbol_table.items():
+                if k not in self.all_functions_name:
+                    del temp_symbol_table[k]
+            self.symbol_table = temp_symbol_table
+            self.is_in_func = True
+            self.current_state = 0
+
         return idx, another_char_recognized, lexeme, bool(errors), errors, line_tokens
 
     def number_dfa(self, chars, idx):
@@ -316,9 +339,11 @@ class Scanner:
     def get_input(self):
         while self.lineno < len(self.lines):
             res = self.get_next_token()
-            if res is not None:
-                print(res)
-        print("$")
+            if res != "$":
+                continue
+            elif res == "$":
+                break
+        print(self.symbol_table)
 
     def get_all_tokens(self):
         self.get_input()
