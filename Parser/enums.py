@@ -1,7 +1,7 @@
 FIRST = {
-    "Program": ["break", "continue", "ID", "return", "global", "def", "if", "while", None],
-    "Statements": ["break", "continue", "ID", "return", "global", "def", "if", "while", None],
-    "Statement": ["break", "continue", "ID", "return", "global", "def", "if", "while"],
+    "Program": ["break", "continue", "ID", "return", "global", "def", "if", "while", "output", None],
+    "Statements": ["break", "continue", "ID", "return", "global", "def", "if", "while", "output", None],
+    "Statement": ["break", "continue", "ID", "return", "global", "def", "if", "while", "output"],
     "Simple_stmt": ["break", "continue", "ID", "return", "global", "output"],
     "Compound_stmt": ["def", "if", "while"],
     "Assignment_Call": ["ID"],
