@@ -133,7 +133,8 @@ class Scanner:
             self.symbol_table[lexeme] = None
             self.all_functions_name.append(lexeme)
             self.is_in_func = False
-        elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value:
+
+        elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and self.symbol_table.get(lexeme) is None:
             self.symbol_table[lexeme] = self.current_state
             self.current_state += 1
         if lexeme == "def":
