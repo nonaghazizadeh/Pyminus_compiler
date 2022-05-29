@@ -8,6 +8,9 @@ def get_first(alpha: str):
         return res
 
     for beta in alpha.split(" "):
+        if beta[0] == '#':
+            continue
+
         if beta in TERMINAL:
             res.add(beta)
             return res
