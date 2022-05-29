@@ -26,4 +26,5 @@ parser.parse()
 
 # print('*************************')
 
-print(parser.scanner.symbol_table)
+parser.inter_code_gen.mem_manager.take_pic()
+print('tpp_sp: ' + parser.inter_code_gen.mem_manager.top)

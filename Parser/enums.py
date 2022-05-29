@@ -74,8 +74,8 @@ GRAMMAR = {
     "Statement": ["Compound_stmt", "Simple_stmt"],
     "Simple_stmt": ["Assignment_Call", "Return_stmt", "Global_stmt", "break", "continue"],
     "Compound_stmt": ["Function_def", "If_stmt", "Iteration_stmt"],
-    "Assignment_Call": ["ID B"],
-    "B": ["= C", "[ Expression ] = C", "( Arguments )"],
+    "Assignment_Call": ["#push_id ID B"],
+    "B": ["= C #assign", "[ Expression ] = C #assign", "( Arguments )"],
     "C": ["Expression", "[ Expression List_Rest ]"],
     "List_Rest": [", Expression List_Rest", None],
     "Return_stmt": ["return Return_Value"],
@@ -98,5 +98,5 @@ GRAMMAR = {
     "Primary": ["[ Expression ] Primary", "( Arguments ) Primary", None],
     "Arguments": ["Expression Arguments_Prime", None],
     "Arguments_Prime": [", Expression Arguments_Prime", None],
-    "Atom": ["ID", "NUM"]
+    "Atom": ["ID", "#push_num NUM"]
 }
