@@ -12,7 +12,7 @@ class MemoryManager:
         - temp
         """
         self.virtual_mem = {i: '' for i in range(0, size, step)}
-        self.code_block_inx = enums.CODE_BLOCK_START_INX
+        self.code_block_inx = enums.CODE_BLOCK_START_INX    # PC
         self.static_data_inx = enums.STATIC_DATA_START_INX
         self.runtime_stack_inx = enums.RUNTIME_STACK_START_INX
         self.top_sp = enums.RUNTIME_STACK_START_INX

@@ -2,7 +2,7 @@ FIRST = {
     "Program": ["break", "continue", "ID", "return", "global", "def", "if", "while", None],
     "Statements": ["break", "continue", "ID", "return", "global", "def", "if", "while", None],
     "Statement": ["break", "continue", "ID", "return", "global", "def", "if", "while"],
-    "Simple_stmt": ["break", "continue", "ID", "return", "global"],
+    "Simple_stmt": ["break", "continue", "ID", "return", "global", "output"],
     "Compound_stmt": ["def", "if", "while"],
     "Assignment_Call": ["ID"],
     "B": ["=", "[", "("],
@@ -66,13 +66,13 @@ FOLLOW = {
 
 NON_TERMINAL = set(FIRST)
 TERMINAL = {";", "break", "continue", "ID", "=", "[", "]", "(", ")", ",", "return", "global", "def", ":", "if",
-            "else", "while", "==", "<", "+", "-", "*", "**", "NUM"}
+            "else", "while", "==", "<", "+", "-", "*", "**", "NUM", "output"}
 
 GRAMMAR = {
     "Program": ["Statements"],
     "Statements": ["Statement ; Statements", None],
     "Statement": ["Compound_stmt", "Simple_stmt"],
-    "Simple_stmt": ["Assignment_Call", "Return_stmt", "Global_stmt", "break", "continue"],
+    "Simple_stmt": ["Assignment_Call", "Return_stmt", "Global_stmt", "break", "continue", "output ( ID )"],
     "Compound_stmt": ["Function_def", "If_stmt", "Iteration_stmt"],
     "Assignment_Call": ["#push_id ID B"],
     "B": ["= C #assign", "[ Expression ] = C #assign", "( Arguments )"],
