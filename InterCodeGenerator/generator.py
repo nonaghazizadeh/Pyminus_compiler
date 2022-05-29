@@ -19,6 +19,8 @@ class InterCodeGen:
             self.push_num(param)
         elif action_symbol == 'assign':
             self.assign()
+        elif action_symbol == 'print':
+            self.print()
         else:
             print('ACTION SYMBOL NOT FOUND')
 
@@ -35,3 +37,5 @@ class InterCodeGen:
     def assign(self):
         self.mem_manager.write('assign', self.semantic_stack.pop(), self.semantic_stack.pop())
 
+    def print(self):
+        self.mem_manager.write('print', self.semantic_stack.pop())

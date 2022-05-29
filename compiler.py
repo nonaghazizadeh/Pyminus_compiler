@@ -11,6 +11,9 @@ from anytree import RenderTree
 parser = Parser()
 parser.parse()
 
+with open('output.txt', 'w') as f:
+    f.write(parser.inter_code_gen.mem_manager.return_code_block())
+
 # output = ''
 # for pre, fill, node in RenderTree(parser.root):
 #     output += "%s%s" % (pre, node.name) + '\n'
@@ -27,5 +30,6 @@ parser.parse()
 # print('*************************')
 
 
-# parser.inter_code_gen.mem_manager.take_pic()
+parser.inter_code_gen.mem_manager.take_pic()
+# print(parser.inter_code_gen.semantic_stack)
 # print('tpp_sp: ' + str(parser.inter_code_gen.mem_manager.top))

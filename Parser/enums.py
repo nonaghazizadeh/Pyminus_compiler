@@ -72,7 +72,7 @@ GRAMMAR = {
     "Program": ["Statements"],
     "Statements": ["Statement ; Statements", None],
     "Statement": ["Compound_stmt", "Simple_stmt"],
-    "Simple_stmt": ["Assignment_Call", "Return_stmt", "Global_stmt", "break", "continue", "output ( ID )"],
+    "Simple_stmt": ["Assignment_Call", "Return_stmt", "Global_stmt", "break", "continue", "output ( #push_id ID ) #print"],
     "Compound_stmt": ["Function_def", "If_stmt", "Iteration_stmt"],
     "Assignment_Call": ["#push_id ID B"],
     "B": ["= C #assign", "[ Expression ] = C #assign", "( Arguments )"],
