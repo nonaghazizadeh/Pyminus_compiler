@@ -28,20 +28,29 @@ class InterCodeGen:
         elif action_symbol == 'return_value':
             self.return_value()
         elif action_symbol == 'push_returned_value':
-            print(f'before: {self.semantic_stack}')
             self.push_returned_value()
-            print(f'after: {self.semantic_stack}')
+        elif action_symbol == 'power':
+            # print(f'before: {self.semantic_stack}')
+            self.power()
+            # print(f'after: {self.semantic_stack}')
+        elif action_symbol in ['add', 'sub', 'mult']:
+            self.add_mul_sub(action_symbol)
+        elif action_symbol == 'push_relop':
+            self.push_relop(param)
+        elif action_symbol == 'compare':
+            self.compare()
+        elif action_symbol == 'save_pc':
+
         else:
             print('ACTION SYMBOL NOT FOUND')
 
     # Action Routines
 
     def update_method(self, name: str):
-        addr = self.mem_manager.convert_to_pc()
+        addr = self.mem_manager.get_pc()
         if name == 'main':
             self.mem_manager.virtual_mem[8] = f'(JP, {addr}, , )'
             return
-        print(f'{name}: {self.mem_manager.code_block_inx}')
         self.scanner.symbol_table[name] = {
             'type': 'method',
             'addr': addr
@@ -71,11 +80,8 @@ class InterCodeGen:
         self.mem_manager.write('print', self.semantic_stack.pop())
 
     def add_param(self):    # add param to semantic stack
-        # print(f'before: {self.semantic_stack}')
         num = self.semantic_stack.pop(-2) + 1
         self.semantic_stack.append(num)
-
-        # print(f'after: {self.semantic_stack}')
 
     def call_func(self):
         param_num = self.semantic_stack.pop()
@@ -103,7 +109,7 @@ class InterCodeGen:
 
         # set PC
         self.mem_manager.write('sub', t, f'#{(param_num + 3) * 4}', t)
-        self.mem_manager.write('assign', f'#{self.mem_manager.convert_to_pc() + 2}', f'@{t}')
+        self.mem_manager.write('assign', f'#{self.mem_manager.get_pc() + 2}', f'@{t}')
 
         # write jump
         self.mem_manager.write('jp', self.semantic_stack.pop())
@@ -131,3 +137,37 @@ class InterCodeGen:
     def push_returned_value(self):
         t = self.mem_manager.get_temp()
         self.semantic_stack.append(f'@{t}')
+
+    def power(self):
+        t1, t2 = [f'@{self.mem_manager.get_temp()}' for _ in range(2)]
+        self.mem_manager.write('assign', '#1', t1)
+        self.mem_manager.write('assign', self.semantic_stack.pop(), t2)
+        pc = self.mem_manager.get_pc()
+
+        self.mem_manager.write('jpf', t2, self.mem_manager.get_pc() + 4)
+        self.mem_manager.write('mult', t1, self.semantic_stack.pop(), t1)
+        self.mem_manager.write('sub', t2, '#1', t2)
+        self.mem_manager.write('jp', pc)
+
+        self.semantic_stack.append(t1)
+
+    def add_mul_sub(self, op: str):
+        t = f'@{self.mem_manager.get_temp()}'
+        self.mem_manager.write(op, self.semantic_stack.pop(-2), self.semantic_stack.pop(), t)
+        self.semantic_stack.append(t)
+
+    def push_relop(self, param):
+        self.semantic_stack.append(param)
+
+    def compare(self):
+        t = f'@{self.mem_manager.get_temp()}'
+        relop = self.semantic_stack.pop(-2)
+        inst = 'lt' if relop == '<' else 'eq'
+        self.mem_manager.write(inst, self.semantic_stack.pop(-2), self.semantic_stack.pop(), t)
+        self.semantic_stack.append(t)
+
+    def save_pc(self):
+        self.semantic_stack.append(self.mem_manager.code_block_inx)
+        self.mem_manager.inc_code_block_inx()
+
+    def fill_cond_jump(self):

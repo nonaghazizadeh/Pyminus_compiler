@@ -18,7 +18,6 @@ with open('output.txt', 'w') as f:
     f.write(output)
     # f.write('(PRINT, 500, , )\n(PRINT, 504, , )'.join(output))
 
-print(parser.inter_code_gen.semantic_stack)
 
 # mem_manager = MemoryManager(5000)
 # scanner = Scanner('input.txt')
