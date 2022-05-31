@@ -40,7 +40,7 @@ class InterCodeGen:
         elif action_symbol == 'compare':
             self.compare()
         elif action_symbol == 'save_pc':
-
+            self.save_pc()
         else:
             print('ACTION SYMBOL NOT FOUND')
 
@@ -171,3 +171,4 @@ class InterCodeGen:
         self.mem_manager.inc_code_block_inx()
 
     def fill_cond_jump(self):
+        pass

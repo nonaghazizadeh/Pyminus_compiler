@@ -3,8 +3,8 @@ from Parser.enums import FIRST, TERMINAL
 
 def get_first(alpha: str):
     res = set()
-    if alpha is None:
-        res.add(None)
+    if alpha == 'EPSILON':
+        res.add('EPSILON')
         return res
 
     for beta in alpha.split(" "):
@@ -16,13 +16,13 @@ def get_first(alpha: str):
             return res
 
         res.update(FIRST[beta])
-        if None in FIRST[beta]:
-            res.remove(None)
+        if 'EPSILON' in FIRST[beta]:
+            res.remove('EPSILON')
             continue
 
         return res
 
-    res.add(None)
+    res.add('EPSILON')
     return res
 
 

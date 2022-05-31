@@ -25,10 +25,10 @@ class Parser:
             for alpha in v:
                 firsts = get_first(alpha)
                 for t in firsts:
-                    if t is not None:
+                    if t != 'EPSILON':
                         self.table[A][t] = alpha
 
-                if None in firsts:
+                if 'EPSILON' in firsts:
                     for t in FOLLOW[A]:
                         self.table[A][t] = alpha
 
@@ -68,7 +68,7 @@ class Parser:
                         top_of_stack.parent = None
                         continue
 
-                    elif temp is None:
+                    elif temp is 'EPSILON':
                         # print(f'ACTION: EPSILON')
                         Node('epsilon', parent=top_of_stack)
 
