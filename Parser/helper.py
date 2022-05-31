@@ -3,13 +3,12 @@ from Parser.enums import FIRST, TERMINAL
 
 def get_first(alpha: str):
     res = set()
-    if alpha == 'EPSILON':
+    alpha = remove_hashtags(alpha)
+    if 'EPSILON' == alpha:
         res.add('EPSILON')
         return res
 
     for beta in alpha.split(" "):
-        if beta[0] == '#':
-            continue
 
         if beta in TERMINAL:
             res.add(beta)
@@ -35,3 +34,13 @@ def extract_token(t):
         return 'NUM'
     else:
         return t[1]
+
+
+def remove_hashtags(alpha: str):
+    res = []
+    for s in alpha.split(' '):
+        if s[0] != '#':
+            res.append(s)
+
+    return ' '.join(res)
+

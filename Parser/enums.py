@@ -85,7 +85,7 @@ GRAMMAR = {
     "Params": ["ID Params_Prime", "EPSILON"],
     "Params_Prime": [", ID Params_Prime", "EPSILON"],
     "If_stmt": ["if Relational_Expression : Statements Else_block"],
-    "Else_block": ["else : Statements", "EPSILON"],
+    "Else_block": ["else : Statements", "EPSILON #if"],
     "Iteration_stmt": ["while ( Relational_Expression ) Statements"],
     "Relational_Expression": ["Expression #push_relop Relop Expression #compare"],
     "Relop": ["==", "<"],
