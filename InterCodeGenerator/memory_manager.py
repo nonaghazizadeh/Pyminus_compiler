@@ -31,29 +31,12 @@ class MemoryManager:
         cb = dict(filter(lambda x: x[1] != '' and x[0] < enums.STATIC_DATA_START_INX, self.virtual_mem.items()))
         return '\n'.join([f'{int(i / 4)}\t{cb[i]}' for i in sorted(cb)])
 
-    # def take_pic(self):
-    #     non_empty_cells = dict(filter(lambda x: x[1] != '', self.virtual_mem.items()))
-    #
-    #     code_block, static_data, runtime_stack = [], [], []
-    #     for k in sorted(non_empty_cells):
-    #         to_show = f'{k}\t{non_empty_cells[k]}'
-    #         if k < enums.STATIC_DATA_START_INX:
-    #             code_block.append(to_show)
-    #         elif k < enums.RUNTIME_STACK_START_INX:
-    #             static_data.append(to_show)
-    #         else:
-    #             runtime_stack.append(to_show)
-    #
-    #     for v1, v2 in zip(['CODE BLOCK', 'STATIC DATA', 'RUNTIME STACK'], [code_block, static_data, runtime_stack]):
-    #         print(f'*********** {v1} ***********')
-    #         print('\n'.join(v2))
-    #         print()
-    #
-    #
-
     def write(self, inst, addr1='', addr2='', addr3='', on_pc=None):
-        self.virtual_mem[self.code_block_inx] = f'({inst.upper()}, {addr1}, {addr2}, {addr3})'
-        self.inc_code_block_inx()
+        if on_pc is None:
+            self.virtual_mem[self.code_block_inx] = f'({inst.upper()}, {addr1}, {addr2}, {addr3})'
+            self.inc_code_block_inx()
+        else:
+            self.virtual_mem[on_pc] = f'({inst.upper()}, {addr1}, {addr2}, {addr3})'
 
     def inc_code_block_inx(self):
         self.code_block_inx += 4

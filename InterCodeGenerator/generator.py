@@ -30,9 +30,7 @@ class InterCodeGen:
         elif action_symbol == 'push_returned_value':
             self.push_returned_value()
         elif action_symbol == 'power':
-            # print(f'before: {self.semantic_stack}')
             self.power()
-            # print(f'after: {self.semantic_stack}')
         elif action_symbol in ['add', 'sub', 'mult']:
             self.add_mul_sub(action_symbol)
         elif action_symbol == 'push_relop':
@@ -41,6 +39,12 @@ class InterCodeGen:
             self.compare()
         elif action_symbol == 'save_pc':
             self.save_pc()
+        elif action_symbol == 'if':
+            self.fill_if()
+        elif action_symbol == 'if_save':
+            self.fill_if_and_save()
+        elif action_symbol == 'else':
+            self.fill_else()
         else:
             print('ACTION SYMBOL NOT FOUND')
 
@@ -170,5 +174,15 @@ class InterCodeGen:
         self.semantic_stack.append(self.mem_manager.code_block_inx)
         self.mem_manager.inc_code_block_inx()
 
-    def fill_cond_jump(self):
-        pass
+    def fill_if(self):
+        saved_pc = self.semantic_stack.pop()
+        self.mem_manager.write('jpf', self.semantic_stack.pop(), self.mem_manager.get_pc(), on_pc=saved_pc)
+
+    def fill_if_and_save(self):
+        self.save_pc()
+        saved_pc = self.semantic_stack.pop(-2)
+        self.mem_manager.write('jpf', self.semantic_stack.pop(-2), self.mem_manager.get_pc(), on_pc=saved_pc)
+
+    def fill_else(self):
+        saved_pc = self.semantic_stack.pop()
+        self.mem_manager.write('jp', self.mem_manager.get_pc(), on_pc=saved_pc)
