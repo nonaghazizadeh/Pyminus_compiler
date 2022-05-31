@@ -16,18 +16,7 @@ parser.parse()
 with open('output.txt', 'w') as f:
     output = parser.inter_code_gen.mem_manager.return_code_block()
     f.write(output)
-    # f.write('(PRINT, 500, , )\n(PRINT, 504, , )'.join(output))
-
-
-# mem_manager = MemoryManager(5000)
-# scanner = Scanner('input.txt')
-# scanner.symbol_table = {'i': 0, 'j': 1}
-# icg = InterCodeGen(scanner)
-# icg.push_id('i')
-# icg.push_id('j')
-# icg.mem_manager.write('print', '@3000')
-# icg.mem_manager.write('print', '@3004')
-# print(icg.mem_manager.return_code_block())
+#     f.write('(PRINT, 500, , )\n(PRINT, 504, , )'.join(output))
 
 
 # output = ''

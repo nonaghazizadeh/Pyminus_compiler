@@ -68,7 +68,7 @@ class Parser:
                         top_of_stack.parent = None
                         continue
 
-                    elif temp is 'EPSILON':
+                    elif temp == 'EPSILON':
                         # print(f'ACTION: EPSILON')
                         Node('epsilon', parent=top_of_stack)
 
