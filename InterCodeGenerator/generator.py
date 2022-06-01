@@ -64,7 +64,7 @@ class InterCodeGen:
         x = self.semantic_stack.pop(inx)
         if type(x) == str:
             if x[0] == '%':
-                return self.mem_manager.get_absolute(x[1:])
+                return self.mem_manager.get_absolute(int(x[1:]))
             else:
                 return x
         else:
@@ -94,9 +94,9 @@ class InterCodeGen:
                 # simple assignment
                 self.semantic_stack.append(f'%{symbol_table[name]}')
                 if name not in self.mem_manager.ids:
-                    self.mem_manager.temp_dis += 4
+                    self.mem_manager.temp_dis += 1
                     self.mem_manager.ids.append(name)
-                    # self.mem_manager.inc_top()
+                    self.mem_manager.inc_top()
             else:
                 print('ERROR WHILE PUSHING ID')
 
@@ -115,7 +115,13 @@ class InterCodeGen:
 
     def call_func(self):
         param_num = self.pop_semantic_stack()
-        t = self.mem_manager.get_temp()
+        t = self.mem_manager.get_free()
+
+        # set params
+        self.mem_manager.write('add', self.mem_manager.top_addr, '#16', t)
+        for i in range(-param_num, 0, 1):
+            self.mem_manager.write('assign', self.pop_semantic_stack(i), f'@{t}')
+            self.mem_manager.write('add', t, '#4', t)
 
         # set TOP_SP
         self.mem_manager.write('add', self.mem_manager.top_addr, '#8', t)
@@ -128,38 +134,36 @@ class InterCodeGen:
         # update TOP_SP
         self.mem_manager.write('add', t, '#4', t)
         self.mem_manager.write('assign', t, self.mem_manager.top_sp_addr)
-        self.mem_manager.write('print', 500)
-
-        # set params
-        for i in range(-param_num, 0, 1):
-            self.mem_manager.write('assign', self.pop_semantic_stack(i), f'@{t}')
-            self.mem_manager.write('add', t, '#4', t)
+        # self.mem_manager.write('print', 500)
 
         # update TOP
+        # self.mem_manager.write('add', t, f'#{param_num * 4}', t)
         self.mem_manager.write('assign', t, self.mem_manager.top_addr)
-        self.mem_manager.write('print', 504)
+        # self.mem_manager.write('print', 504)
 
         # set PC
-        self.mem_manager.write('sub', t, f'#{(param_num + 3) * 4}', t)
+        # self.mem_manager.write('sub', t, f'#{(param_num + 3) * 4}', t)
+        self.mem_manager.write('sub', t, '#12', t)
         self.mem_manager.write('assign', f'#{self.mem_manager.get_pc() + 2}', f'@{t}')
 
         # write jump
         self.mem_manager.write('jp', self.pop_semantic_stack())
 
     def return_value(self):
-        t = self.mem_manager.get_temp()
+        t = self.mem_manager.get_free()
         self.mem_manager.write('assign', self.mem_manager.top_sp_addr, t)
 
+        # save returned value
+        self.mem_manager.write('sub', t, '#16', t)
+        self.mem_manager.write('assign', self.pop_semantic_stack(), f'@{t}')
+
         # restore TOP
-        self.mem_manager.write('sub', t, '#4', t)
+        self.mem_manager.write('add', t, '#12', t)
         self.mem_manager.write('assign', f'@{t}', self.mem_manager.top_addr)
 
         # restore TOP_SP
         self.mem_manager.write('sub', t, '#4', t)
         self.mem_manager.write('assign', f'@{t}', self.mem_manager.top_sp_addr)
-
-        # save returned value
-        self.mem_manager.write('assign', self.pop_semantic_stack(), f'@{self.mem_manager.top_addr}')
 
         # restore PC
         self.mem_manager.write('sub', t, '#4', t)
@@ -167,9 +171,8 @@ class InterCodeGen:
         self.mem_manager.write('jp', f'@{t}')
 
     def push_returned_value(self):
-        t = self.mem_manager.get_temp()
-        self.semantic_stack.append(f'@{t}')
-        self.mem_manager.write('print', f'@{t}')
+        _, dis = self.mem_manager.get_temp()
+        self.semantic_stack.append(dis)
 
     def power(self):
         t1, dis1 = self.mem_manager.get_temp()
