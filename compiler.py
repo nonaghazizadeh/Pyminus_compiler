@@ -13,6 +13,7 @@ from InterCodeGenerator.generator import InterCodeGen
 parser = Parser()
 parser.parse()
 
+
 with open('output.txt', 'w') as f:
     output = parser.inter_code_gen.mem_manager.return_code_block()
     f.write(output)
