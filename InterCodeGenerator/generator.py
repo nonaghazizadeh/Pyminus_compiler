@@ -55,6 +55,8 @@ class InterCodeGen:
             self.label()
         elif action_symbol == 'while':
             self.fill_while()
+        elif action_symbol == 'saw_id':
+            self.add_id(param)
         else:
             print('ACTION SYMBOL NOT FOUND')
 
@@ -73,10 +75,10 @@ class InterCodeGen:
     # Action Routines
     def update_method(self, name: str):
         addr = self.mem_manager.get_pc()
-        self.mem_manager.temp_dis = 0  # reset temp displacement
+        self.mem_manager.dis = 0  # reset temp displacement
         self.mem_manager.ids = []  # empty saw ids list
         if name == 'main':
-            self.mem_manager.virtual_mem[8] = f'(JP, {addr}, , )'
+            self.mem_manager.virtual_mem[4] = f'(JP, {addr}, , )'
             return
         self.scanner.symbol_table[name] = {
             'type': 'method',
@@ -94,9 +96,7 @@ class InterCodeGen:
                 # simple assignment
                 self.semantic_stack.append(f'%{symbol_table[name]}')
                 if name not in self.mem_manager.ids:
-                    self.mem_manager.temp_dis += 1
-                    self.mem_manager.ids.append(name)
-                    self.mem_manager.inc_top()
+                    self.add_id(name)
             else:
                 print('ERROR WHILE PUSHING ID')
 
@@ -117,52 +117,43 @@ class InterCodeGen:
         param_num = self.pop_semantic_stack()
         t = self.mem_manager.get_free()
 
+        # update top_addr
+        self.mem_manager.write('add', self.mem_manager.top_sp_addr, f'#{self.mem_manager.dis * 4}', t)
+
         # set params
-        self.mem_manager.write('add', self.mem_manager.top_addr, '#16', t)
+        self.mem_manager.write('add', t, '#12', t)
         for i in range(-param_num, 0, 1):
             self.mem_manager.write('assign', self.pop_semantic_stack(i), f'@{t}')
             self.mem_manager.write('add', t, '#4', t)
 
         # set TOP_SP
-        self.mem_manager.write('add', self.mem_manager.top_addr, '#8', t)
+        self.mem_manager.write('sub', t, f'#{(param_num + 1) * 4}', t)
         self.mem_manager.write('assign', self.mem_manager.top_sp_addr, f'@{t}')
-
-        # set TOP
-        self.mem_manager.write('add', t, '#4', t)
-        self.mem_manager.write('assign', self.mem_manager.top_addr, f'@{t}')
 
         # update TOP_SP
         self.mem_manager.write('add', t, '#4', t)
         self.mem_manager.write('assign', t, self.mem_manager.top_sp_addr)
-        # self.mem_manager.write('print', 500)
-
-        # update TOP
-        # self.mem_manager.write('add', t, f'#{param_num * 4}', t)
-        self.mem_manager.write('assign', t, self.mem_manager.top_addr)
-        # self.mem_manager.write('print', 504)
 
         # set PC
-        # self.mem_manager.write('sub', t, f'#{(param_num + 3) * 4}', t)
-        self.mem_manager.write('sub', t, '#12', t)
+        self.mem_manager.write('sub', t, '#8', t)
         self.mem_manager.write('assign', f'#{self.mem_manager.get_pc() + 2}', f'@{t}')
 
         # write jump
         self.mem_manager.write('jp', self.pop_semantic_stack())
+
+        # push callee returned value to semantic stack
+        self.semantic_stack.append(f'%{self.mem_manager.dis}')
 
     def return_value(self):
         t = self.mem_manager.get_free()
         self.mem_manager.write('assign', self.mem_manager.top_sp_addr, t)
 
         # save returned value
-        self.mem_manager.write('sub', t, '#16', t)
+        self.mem_manager.write('sub', t, '#12', t)
         self.mem_manager.write('assign', self.pop_semantic_stack(), f'@{t}')
 
-        # restore TOP
-        self.mem_manager.write('add', t, '#12', t)
-        self.mem_manager.write('assign', f'@{t}', self.mem_manager.top_addr)
-
         # restore TOP_SP
-        self.mem_manager.write('sub', t, '#4', t)
+        self.mem_manager.write('add', t, '#8', t)
         self.mem_manager.write('assign', f'@{t}', self.mem_manager.top_sp_addr)
 
         # restore PC
@@ -171,8 +162,7 @@ class InterCodeGen:
         self.mem_manager.write('jp', f'@{t}')
 
     def push_returned_value(self):
-        _, dis = self.mem_manager.get_temp()
-        self.semantic_stack.append(dis)
+        pass
 
     def power(self):
         t1, dis1 = self.mem_manager.get_temp()
@@ -211,10 +201,10 @@ class InterCodeGen:
             self.mem_manager.write('')
 
     def fill_if(self):
-        code_inx = self.mem_manager.code_block_inx    # store
+        code_inx = self.mem_manager.code_block_inx  # store
         self.mem_manager.code_block_inx = self.pop_semantic_stack()
         self.mem_manager.write('jpf', self.pop_semantic_stack(), int(code_inx / 4))
-        self.mem_manager.code_block_inx = code_inx    # restore
+        self.mem_manager.code_block_inx = code_inx  # restore
 
     def fill_if_and_save(self):
         self.save_pc(False)
@@ -239,3 +229,6 @@ class InterCodeGen:
         self.mem_manager.write('jpf', self.pop_semantic_stack(), int(code_inx / 4))
         self.mem_manager.code_block_inx = code_inx
 
+    def add_id(self, name: str):
+        self.mem_manager.ids.append(name)
+        self.mem_manager.dis += 1
