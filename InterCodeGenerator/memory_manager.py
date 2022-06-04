@@ -42,10 +42,10 @@ class MemoryManager:
         self.free_inx += 4
         return f
 
-    def get_absolute(self, dis):        # dis: displacement
+    def get_absolute(self, dis, base):        # dis: displacement
         dis *= 4
         f = self.get_free()
-        self.write('add', self.top_sp_addr, f'#{dis}', f)
+        self.write('add', base, f'#{dis}', f)
         return f'@{f}'
 
     def get_temp(self):

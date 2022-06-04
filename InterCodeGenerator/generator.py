@@ -66,7 +66,7 @@ class InterCodeGen:
         x = self.semantic_stack.pop(inx)
         if type(x) == str:
             if x[0] == '%':
-                return self.mem_manager.get_absolute(int(x[1:]))
+                return self.mem_manager.get_absolute(base=self.mem_manager.top_sp_addr, dis=int(x[1:]))
             else:
                 return x
         else:
@@ -79,25 +79,27 @@ class InterCodeGen:
         self.mem_manager.ids = []  # empty saw ids list
         if name == 'main':
             self.mem_manager.virtual_mem[4] = f'(JP, {addr}, , )'
-            return
-        self.scanner.symbol_table[name] = {
-            'type': 'method',
-            'addr': addr
-        }
+
+        self.scanner.symbol_table['global'][name] = f'{addr}'
 
     def push_id(self, name: str):
-        symbol_table = self.scanner.symbol_table
-        if type(symbol_table[name]) == dict:
-            # function call
-            self.semantic_stack.append(symbol_table[name]['addr'])
-            self.semantic_stack.append(0)  # params number
-        elif type(symbol_table[name]) == int:
-            # simple assignment
-            self.semantic_stack.append(f'%{symbol_table[name]}')
+        local_data = self.scanner.symbol_table['local']
+        global_data = self.scanner.symbol_table['global']
+
+        # simple assignment
+        if local_data.get(name) is not None:
+            # name is local var
+            self.semantic_stack.append(f'%{local_data[name]}')
             if name not in self.mem_manager.ids:
                 self.add_id(name)
         else:
-            print('ERROR WHILE PUSHING ID')
+            if type(global_data[name]) == str:
+                # name is function -> function call
+                self.semantic_stack.append(int(global_data[name]))
+                self.semantic_stack.append(0)  # params number
+            else:
+                # name is global var
+                self.semantic_stack.append(f'^{global_data[name]}')
 
     def push_num(self, num: str):
         self.semantic_stack.append('#' + num)
