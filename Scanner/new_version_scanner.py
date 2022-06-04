@@ -99,7 +99,7 @@ class Scanner:
             line_tokens += ' (' + str(', '.join(self.recognize_symbol(''.join(chars[idx])))) + ')'
             idx += 1
 
-        if (symbol == ',' or symbol == '=' or symbol ==')') and self.memory != '':
+        if (symbol == ',' or symbol == '=' or symbol == ')') and self.memory != '':
             temp_dict = self.symbol_table['local']
             temp_dict[self.memory] = self.second_current_state
             self.second_current_state += 1
@@ -166,8 +166,6 @@ class Scanner:
             self.is_in_func = True
             self.reach_keyword = False
             self.second_current_state = 0
-
-        print(self.symbol_table)
 
         return idx, another_char_recognized, lexeme, bool(errors), errors, line_tokens
 
