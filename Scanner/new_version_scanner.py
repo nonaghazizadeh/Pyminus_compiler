@@ -19,12 +19,13 @@ class Scanner:
         self.errors = ''
         self.lineno = 0
         self.idx = 0
-        self.symbol_table = {}
-        self.current_func = 'GLOBAL'
-        self.symbol_table = {self.current_func: None}
+        self.symbol_table = {'global': {}, 'local' : {}}
+        self.current_func = ''
         self.is_in_func = False
         self.current_state = 0
         self.all_functions_name = []
+        self.in_second_scope = False
+        self.second_current_state = 0
 
     def recognize_keyid(self, token):
         if token in enums.Languages.KEYWORDS.value:
@@ -130,20 +131,24 @@ class Scanner:
                 break
 
         if self.is_in_func:
-            self.symbol_table[lexeme] = None
+            temp_dict = self.symbol_table['global']
+            temp_dict[lexeme] = {None}
             self.all_functions_name.append(lexeme)
             self.is_in_func = False
         elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and self.symbol_table.get(lexeme) is None:
-            self.symbol_table[lexeme] = self.current_state
-            self.current_state += 1
+            if self.in_second_scope:
+                temp_dict = self.symbol_table['local']
+                temp_dict[lexeme] = {self.second_current_state}
+                self.second_current_state += 1
+            else:
+                temp_dict = self.symbol_table['global']
+                temp_dict[lexeme] = {self.current_state}
+                self.current_state += 1
         if lexeme == "def":
-            temp_symbol_table = self.symbol_table.copy()
-            for k, v in self.symbol_table.items():
-                if k not in self.all_functions_name:
-                    del temp_symbol_table[k]
-            self.symbol_table = temp_symbol_table
+            self.in_second_scope = True
+            self.symbol_table['local'] = {}
             self.is_in_func = True
-            self.current_state = 0
+            self.second_current_state = 0
 
         return idx, another_char_recognized, lexeme, bool(errors), errors, line_tokens
 
