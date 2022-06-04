@@ -99,11 +99,8 @@ class Scanner:
             line_tokens += ' (' + str(', '.join(self.recognize_symbol(''.join(chars[idx])))) + ')'
             idx += 1
 
-        if (symbol == ',' or symbol == '=' or symbol == ')') and self.memory != '':
-            temp_dict = self.symbol_table['local']
-            temp_dict[self.memory] = self.second_current_state
-            self.second_current_state += 1
-            self.memory = ''
+        if symbol == ',' or symbol == '=' or symbol =='(':
+            self.memory = symbol
 
         return idx, bool(errors), errors, line_tokens
 
@@ -149,12 +146,14 @@ class Scanner:
             temp_dict[lexeme] = None
             self.all_functions_name.append(lexeme)
             self.is_in_func = False
-        elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and self.symbol_table.get(
-                lexeme) is None and not self.reach_keyword:
-            if self.in_second_scope:
+        elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and not self.reach_keyword:
+
+            if self.in_second_scope and (self.memory == ',' or self.memory == '(' or self.memory == '\n'):
                 temp_dict = self.symbol_table['local']
-                if lexeme not in temp_dict:
-                    self.memory = lexeme
+                if lexeme not in temp_dict and self.memory != '':
+                    temp_dict[lexeme] = self.second_current_state
+                    self.second_current_state += 1
+                    self.memory = ''
             else:
                 temp_dict = self.symbol_table['global']
                 if lexeme not in temp_dict:
@@ -265,6 +264,7 @@ class Scanner:
                     token = ''
                     founded = True
                 elif chars[self.idx] == '\n':
+                    self.memory = '\n'
                     self.add_to_files()
                     self.clear_data()
                     self.lineno += 1
