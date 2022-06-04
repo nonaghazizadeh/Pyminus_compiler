@@ -65,26 +65,34 @@ class InterCodeGen:
     def pop_semantic_stack(self, inx: int = -1):
         x = self.semantic_stack.pop(inx)
         if type(x) == str:
-            if x[0] == '%':
+            if x[0] == '%':     # top_addr relative
                 return self.mem_manager.get_absolute(base=self.mem_manager.top_sp_addr, dis=int(x[1:]))
+            elif x[0] == '^':       # static data relative
+                return self.mem_manager.get_absolute(base=self.mem_manager.static_addr, dis=int(x[1:]))
             else:
-                return x
-        else:
+                return x    # num
+        else:   # params, ...
             return x
 
     # Action Routines
     def update_method(self, name: str):
-        addr = self.mem_manager.get_pc()
         self.mem_manager.dis = 0  # reset temp displacement
         self.mem_manager.ids = []  # empty saw ids list
+
+        if self.mem_manager.main_addr is None:
+            self.mem_manager.main_addr = self.mem_manager.code_block_inx
+            self.mem_manager.code_block_inx += 4
+
+        addr = self.mem_manager.get_pc()
         if name == 'main':
-            self.mem_manager.virtual_mem[4] = f'(JP, {addr}, , )'
+            self.mem_manager.virtual_mem[self.mem_manager.main_addr] = f'(JP, {addr}, , )'
 
         self.scanner.symbol_table['global'][name] = f'{addr}'
 
     def push_id(self, name: str):
         local_data = self.scanner.symbol_table['local']
         global_data = self.scanner.symbol_table['global']
+        print(self.scanner.symbol_table)
 
         # simple assignment
         if local_data.get(name) is not None:

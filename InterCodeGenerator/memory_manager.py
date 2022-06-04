@@ -14,17 +14,20 @@ class MemoryManager:
         - temp
         """
         self.virtual_mem = {i: '' for i in range(0, size)}
-        self.code_block_inx = enums.CODE_BLOCK_START_INX + 8  # PC
-        self.static_data_inx = enums.STATIC_DATA_START_INX
-        self.runtime_stack_inx = enums.RUNTIME_STACK_START_INX
+        self.code_block_inx = enums.CODE_BLOCK_START_INX  # PC
+        self.__static_data_inx = enums.STATIC_DATA_START_INX
+        self.__runtime_stack_inx = enums.RUNTIME_STACK_START_INX
         self.free_inx = enums.FREE_START_INX
         self.dis = 0
         self.ids = []
+        self.main_addr = None
 
         # save top and top_sp in static data
-        self.top_sp_addr = self.static_data_inx
-        self.static_data_inx += 8
-        self.virtual_mem[0] = f'(ASSIGN, #{self.runtime_stack_inx}, {self.top_sp_addr}, )'
+        self.top_sp_addr = self.__static_data_inx
+        self.static_addr = self.__static_data_inx + 4
+        self.__static_data_inx += 8
+        self.write('assign', f'#{self.__runtime_stack_inx}', f'{self.top_sp_addr}')
+        self.write('assign', f'#{self.__static_data_inx}', f'{self.static_addr}')
 
     def return_code_block(self):
         cb = dict(filter(lambda x: x[1] != '' and x[0] < enums.STATIC_DATA_START_INX, self.virtual_mem.items()))
