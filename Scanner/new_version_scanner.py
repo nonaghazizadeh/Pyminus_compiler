@@ -139,12 +139,14 @@ class Scanner:
         elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and self.symbol_table.get(lexeme) is None:
             if self.in_second_scope:
                 temp_dict = self.symbol_table['local']
-                temp_dict[lexeme] = self.second_current_state
-                self.second_current_state += 1
+                if lexeme not in temp_dict:
+                    temp_dict[lexeme] = self.second_current_state
+                    self.second_current_state += 1
             else:
                 temp_dict = self.symbol_table['global']
-                temp_dict[lexeme] = self.current_state
-                self.current_state += 1
+                if lexeme not in temp_dict:
+                    temp_dict[lexeme] = self.current_state
+                    self.current_state += 1
         if lexeme == "def":
             self.in_second_scope = True
             self.symbol_table['local'] = {}
