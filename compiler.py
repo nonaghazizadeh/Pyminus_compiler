@@ -4,9 +4,6 @@ Nona Ghazizadeh 98171007
 """
 
 from Parser.parser import Parser
-from anytree import RenderTree
-from InterCodeGenerator.memory_manager import MemoryManager
-from InterCodeGenerator.generator import InterCodeGen
 
 parser = Parser()
 parser.parse()
@@ -14,6 +11,9 @@ parser.parse()
 with open('output.txt', 'w') as f:
     output = parser.inter_code_gen.mem_manager.return_code_block()
     f.write(output)
+
+
+# from anytree import RenderTree
 
 # output = ''
 # for pre, fill, node in RenderTree(parser.root):
@@ -39,3 +39,4 @@ with open('output.txt', 'w') as f:
 #     print(scanner.symbol_table)
 #     print()
 #     x = scanner.get_next_token()
+#

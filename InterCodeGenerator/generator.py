@@ -31,8 +31,6 @@ class InterCodeGen:
             self.call_func()
         elif action_symbol == 'return_value':
             self.return_value()
-        elif action_symbol == 'push_returned_value':
-            self.push_returned_value()
         elif action_symbol == 'power':
             self.power()
         elif action_symbol in ['add', 'sub', 'mult']:
@@ -57,6 +55,8 @@ class InterCodeGen:
             self.fill_while()
         elif action_symbol == 'saw_id':
             self.add_id(param)
+        elif action_symbol == 'push_returned_value':
+            self.push_returned_value()
         else:
             print('ACTION SYMBOL NOT FOUND')
 
@@ -87,18 +87,17 @@ class InterCodeGen:
 
     def push_id(self, name: str):
         symbol_table = self.scanner.symbol_table
-        if name in symbol_table.keys():
-            if type(symbol_table[name]) == dict:
-                # function call
-                self.semantic_stack.append(symbol_table[name]['addr'])
-                self.semantic_stack.append(0)  # params number
-            elif type(symbol_table[name]) == int:
-                # simple assignment
-                self.semantic_stack.append(f'%{symbol_table[name]}')
-                if name not in self.mem_manager.ids:
-                    self.add_id(name)
-            else:
-                print('ERROR WHILE PUSHING ID')
+        if type(symbol_table[name]) == dict:
+            # function call
+            self.semantic_stack.append(symbol_table[name]['addr'])
+            self.semantic_stack.append(0)  # params number
+        elif type(symbol_table[name]) == int:
+            # simple assignment
+            self.semantic_stack.append(f'%{symbol_table[name]}')
+            if name not in self.mem_manager.ids:
+                self.add_id(name)
+        else:
+            print('ERROR WHILE PUSHING ID')
 
     def push_num(self, num: str):
         self.semantic_stack.append('#' + num)
@@ -141,8 +140,9 @@ class InterCodeGen:
         # write jump
         self.mem_manager.write('jp', self.pop_semantic_stack())
 
-        # push callee returned value to semantic stack
+    def push_returned_value(self):
         self.semantic_stack.append(f'%{self.mem_manager.dis}')
+        self.mem_manager.dis += 1
 
     def return_value(self):
         t = self.mem_manager.get_free()
@@ -160,9 +160,6 @@ class InterCodeGen:
         self.mem_manager.write('sub', t, '#4', t)
         self.mem_manager.write('assign', f'@{t}', t)
         self.mem_manager.write('jp', f'@{t}')
-
-    def push_returned_value(self):
-        pass
 
     def power(self):
         t1, dis1 = self.mem_manager.get_temp()
