@@ -149,7 +149,6 @@ class Scanner:
             self.symbol_table['local'] = {}
             self.is_in_func = True
             self.second_current_state = 0
-        print(self.symbol_table)
 
         return idx, another_char_recognized, lexeme, bool(errors), errors, line_tokens
 
