@@ -147,14 +147,13 @@ class Scanner:
             self.all_functions_name.append(lexeme)
             self.is_in_func = False
         elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and not self.reach_keyword:
-
             if self.in_second_scope and (self.memory == ',' or self.memory == '(' or self.memory == '\n'):
                 temp_dict = self.symbol_table['local']
                 if lexeme not in temp_dict and self.memory != '':
                     temp_dict[lexeme] = self.second_current_state
                     self.second_current_state += 1
                     self.memory = ''
-            else:
+            elif not self.in_second_scope:
                 temp_dict = self.symbol_table['global']
                 if lexeme not in temp_dict:
                     temp_dict[lexeme] = self.current_state
@@ -166,6 +165,7 @@ class Scanner:
             self.reach_keyword = False
             self.second_current_state = 0
 
+        print(self.symbol_table)
         return idx, another_char_recognized, lexeme, bool(errors), errors, line_tokens
 
     def number_dfa(self, chars, idx):
