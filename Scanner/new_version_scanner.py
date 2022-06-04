@@ -132,23 +132,24 @@ class Scanner:
 
         if self.is_in_func:
             temp_dict = self.symbol_table['global']
-            temp_dict[lexeme] = {None}
+            temp_dict[lexeme] = {"addr":None}
             self.all_functions_name.append(lexeme)
             self.is_in_func = False
         elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and self.symbol_table.get(lexeme) is None:
             if self.in_second_scope:
                 temp_dict = self.symbol_table['local']
-                temp_dict[lexeme] = {self.second_current_state}
+                temp_dict[lexeme] = {'addr':self.second_current_state}
                 self.second_current_state += 1
             else:
                 temp_dict = self.symbol_table['global']
-                temp_dict[lexeme] = {self.current_state}
+                temp_dict[lexeme] = {"addr":self.current_state}
                 self.current_state += 1
         if lexeme == "def":
             self.in_second_scope = True
             self.symbol_table['local'] = {}
             self.is_in_func = True
             self.second_current_state = 0
+        print(self.symbol_table)
 
         return idx, another_char_recognized, lexeme, bool(errors), errors, line_tokens
 
