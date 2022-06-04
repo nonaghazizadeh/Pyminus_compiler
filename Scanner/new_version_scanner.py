@@ -19,13 +19,15 @@ class Scanner:
         self.errors = ''
         self.lineno = 0
         self.idx = 0
-        self.symbol_table = {'global': {}, 'local' : {}}
+        self.symbol_table = {'global': {}, 'local': {}}
         self.current_func = ''
         self.is_in_func = False
         self.current_state = 0
         self.all_functions_name = []
         self.in_second_scope = False
         self.second_current_state = 0
+        self.reach_keyword = False
+        self.memory = ''
 
     def recognize_keyid(self, token):
         if token in enums.Languages.KEYWORDS.value:
@@ -68,6 +70,7 @@ class Scanner:
     def symbol_dfa(self, chars, idx):
         line_tokens = ''
         errors = ''
+        symbol = ''
         if ''.join(chars[idx: idx + 2]) in enums.Languages.SYMBOLS.value:
             line_tokens += ' (' + str(
                 ', '.join((self.recognize_symbol(''.join(chars[idx: idx + 2]))))) + ")"
@@ -85,14 +88,22 @@ class Scanner:
                 idx + 1] == enums.Languages.STAR.value:
                 line_tokens += ' (' + str(', '.join(self.recognize_symbol(current_token))) + ')'
             elif chars[idx] in enums.Languages.SYMBOLS.value:
+                symbol = chars[idx]
                 line_tokens += ' (' + str(', '.join(self.recognize_symbol(current_token))) + ')'
             else:
                 errors += ' (' + str(
                     ', '.join(self.recognize_invalid_input_error(current_token + chars[idx]))) + ")"
                 idx += 1
         else:
+            symbol = chars[idx]
             line_tokens += ' (' + str(', '.join(self.recognize_symbol(''.join(chars[idx])))) + ')'
             idx += 1
+
+        if (symbol == ',' or symbol == '=' or symbol ==')') and self.memory != '':
+            temp_dict = self.symbol_table['local']
+            temp_dict[self.memory] = self.second_current_state
+            self.second_current_state += 1
+            self.memory = ''
 
         return idx, bool(errors), errors, line_tokens
 
@@ -130,19 +141,20 @@ class Scanner:
                 another_char_recognized = True
                 break
 
+        if self.in_second_scope and (lexeme == 'output' or lexeme == 'while' or lexeme == 'if' or lexeme == 'or'):
+            self.reach_keyword = True
+
         if self.is_in_func:
             temp_dict = self.symbol_table['global']
             temp_dict[lexeme] = None
             self.all_functions_name.append(lexeme)
             self.is_in_func = False
-
-        elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and self.symbol_table.get(lexeme) is None:
+        elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and self.symbol_table.get(
+                lexeme) is None and not self.reach_keyword:
             if self.in_second_scope:
                 temp_dict = self.symbol_table['local']
-                global_temp_dict = self.symbol_table['global']
-                if lexeme not in temp_dict  and lexeme not in global_temp_dict:
-                    temp_dict[lexeme] = self.second_current_state
-                    self.second_current_state += 1
+                if lexeme not in temp_dict:
+                    self.memory = lexeme
             else:
                 temp_dict = self.symbol_table['global']
                 if lexeme not in temp_dict:
@@ -152,7 +164,10 @@ class Scanner:
             self.in_second_scope = True
             self.symbol_table['local'] = {}
             self.is_in_func = True
+            self.reach_keyword = False
             self.second_current_state = 0
+
+        print(self.symbol_table)
 
         return idx, another_char_recognized, lexeme, bool(errors), errors, line_tokens
 
@@ -242,6 +257,7 @@ class Scanner:
         token = ''
         founded = False
         chars = self.lines[self.lineno]
+
         while not founded:
             if not self.comment_mode:
                 if self.idx >= len(chars):
