@@ -164,7 +164,6 @@ class Scanner:
             self.reach_keyword = False
             self.second_current_state = 0
 
-        print(self.symbol_table)
         return idx, another_char_recognized, lexeme, bool(errors), errors, line_tokens
 
     def number_dfa(self, chars, idx):
