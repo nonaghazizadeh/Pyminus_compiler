@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class Languages(Enum):
-    KEYWORDS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while', 'output']
+    KEYWORDS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while', 'output', 'global']
     SYMBOLS = [';', ':', ',', '[', ']', '(', ')', '+', '-', '*', '=', '<', '==', '**']
     WHITESPACES = [' ', '\n', '\r', '\t', '\v', '\f']
     EQUAL = '='
