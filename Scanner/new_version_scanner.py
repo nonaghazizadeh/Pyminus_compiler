@@ -245,8 +245,6 @@ class Scanner:
             self.symbol_table['local'] = {}
             self.second_current_state = 0
 
-        print(self.symbol_table)
-
     def add_to_files(self):
         if len(self.tokens) != 0:
             if self.lineno + 1 not in self.token_lines:
