@@ -41,10 +41,10 @@ class InterCodeGen:
             self.push_relop(param)
         elif action_symbol == 'compare':
             self.compare()
-        elif action_symbol == 'save_cond':
+        elif action_symbol == 'save':
             self.save_pc(True)
-        elif action_symbol == 'save_uncond':
-            self.save_pc(False)
+        elif action_symbol == 'save_while':
+            self.fill_save_while()
         elif action_symbol == 'if':
             self.fill_if()
         elif action_symbol == 'if_save':
@@ -54,7 +54,11 @@ class InterCodeGen:
         elif action_symbol == 'label':
             self.label()
         elif action_symbol == 'while':
-            self.fill_while()
+            self.fill_while_jp()
+        elif action_symbol == 'break':
+            self.fill_break()
+        elif action_symbol == 'continue':
+            self.fill_continue()
         elif action_symbol == 'saw_id':
             self.add_id(param)
         elif action_symbol == 'push_returned_value':
@@ -246,14 +250,28 @@ class InterCodeGen:
         self.mem_manager.code_block_inx = code_inx
 
     def label(self):
-        self.semantic_stack.append(self.mem_manager.get_pc())
+        self.semantic_stack.append(self.mem_manager.code_block_inx)
+        self.mem_manager.write('')
+        self.mem_manager.continue_addr.append(self.mem_manager.get_pc())
 
-    def fill_while(self):
-        self.mem_manager.write('jp', self.pop_semantic_stack(-3))
-        code_inx = self.mem_manager.code_block_inx
+    def fill_while_jp(self):
+        self.mem_manager.write('jp', self.mem_manager.continue_addr.pop())
+
+        code_inx = self.mem_manager.code_block_inx  # store
         self.mem_manager.code_block_inx = self.pop_semantic_stack()
-        self.mem_manager.write('jpf', self.pop_semantic_stack(), int(code_inx / 4))
-        self.mem_manager.code_block_inx = code_inx
+        self.mem_manager.write('assign', f'#{int(code_inx / 4)}', self.mem_manager.break_f.pop())
+        self.mem_manager.code_block_inx = code_inx  # restore
+
+    def fill_continue(self):
+        self.mem_manager.write('jp', self.mem_manager.continue_addr[-1])
+
+    def fill_save_while(self):
+        f = self.mem_manager.get_free()
+        self.mem_manager.write('jpf', self.pop_semantic_stack(), f'@{f}')
+        self.mem_manager.break_f.append(f)
+
+    def fill_break(self):
+        self.mem_manager.write('jp', f'@{self.mem_manager.break_f[-1]}')
 
     def add_id(self, name: str):
         self.mem_manager.ids.append(name)

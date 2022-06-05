@@ -20,15 +20,14 @@ class Scanner:
         self.lineno = 0
         self.idx = 0
         self.symbol_table = {'global': {}, 'local': {}}
-        self.current_func = ''
-        self.is_in_func = False
-        self.current_state = 0
-        self.all_functions_name = []
-        self.in_second_scope = False
+        self.first_current_state = 0
         self.second_current_state = 0
+        self.func_start = False
+        self.in_second_scope = False
         self.reach_keyword = False
         self.memory = ''
-        self.second_scope_global = []
+        self.functions_name = []
+        self.second_scope_globals = []
 
     def recognize_keyid(self, token):
         if token in enums.Languages.KEYWORDS.value:
@@ -133,46 +132,7 @@ class Scanner:
                 another_char_recognized = True
                 break
 
-        if lexeme == 'global':
-            self.memory = lexeme
-
-        if self.in_second_scope and (lexeme == 'output' or lexeme == 'while' or lexeme == 'if' or lexeme == 'or'):
-            self.reach_keyword = True
-
-        if self.is_in_func:
-            temp_dict = self.symbol_table['global']
-            temp_dict[lexeme] = None
-            self.all_functions_name.append(lexeme)
-            self.is_in_func = False
-        elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and not self.reach_keyword:
-            if self.in_second_scope:
-                if self.memory == 'global':
-                    self.second_scope_global.append(lexeme)
-                    self.memory = ''
-                elif self.memory == '' and lexeme not in self.second_scope_global:
-                    temp_dict = self.symbol_table['local']
-                    for jdx in range(idx, len(chars)):
-                        if chars[jdx] == ' ':
-                            continue
-                        elif chars[jdx] == '=' or chars[jdx] == ',' or chars[jdx] == ')':
-                            if lexeme not in temp_dict:
-                                temp_dict[lexeme] = self.second_current_state
-                                self.second_current_state += 1
-                            break
-                        else:
-                            break
-            elif not self.in_second_scope:
-                temp_dict = self.symbol_table['global']
-                self.second_scope_global = []
-                if lexeme not in temp_dict:
-                    temp_dict[lexeme] = self.current_state
-                    self.current_state += 1
-        if lexeme == "def":
-            self.in_second_scope = True
-            self.symbol_table['local'] = {}
-            self.is_in_func = True
-            self.reach_keyword = False
-            self.second_current_state = 0
+        self.filling_symbol_table(chars, idx, lexeme)
 
         return idx, another_char_recognized, lexeme, bool(errors), errors, line_tokens
 
@@ -240,6 +200,50 @@ class Scanner:
 
     def others_dfa(self, chars, idx):
         return idx + 1, ' (' + str(', '.join(self.recognize_invalid_input_error(chars[idx]))) + ")"
+
+    def filling_symbol_table(self, chars, idx, lexeme):
+        if lexeme == enums.Languages.KEYWORDS.value[8]:
+            self.memory = lexeme
+
+        if self.in_second_scope and lexeme in enums.Languages.STARTER_KEYWORDS.value:
+            self.reach_keyword = True
+
+        if self.func_start:
+            temp_dict = self.symbol_table['global']
+            temp_dict[lexeme] = None
+            self.functions_name.append(lexeme)
+            self.func_start = False
+        elif not self.func_start and lexeme not in enums.Languages.KEYWORDS.value and not self.reach_keyword:
+            if self.in_second_scope:
+                if self.memory == enums.Languages.KEYWORDS.value[8]:
+                    self.second_scope_globals.append(lexeme)
+                    self.memory = ''
+                elif self.memory == '' and lexeme not in self.second_scope_globals:
+                    temp_dict = self.symbol_table['local']
+                    for jdx in range(idx, len(chars)):
+                        if chars[jdx] == enums.Languages.WHITESPACES.value[0]:
+                            continue
+                        elif chars[jdx] == enums.Languages.EQUAL.value or chars[jdx] == enums.Languages.SYMBOLS.value[
+                            2] or chars[jdx] == enums.Languages.SYMBOLS.value[6]:
+                            if lexeme not in temp_dict:
+                                temp_dict[lexeme] = self.second_current_state
+                                self.second_current_state += 1
+                            break
+                        else:
+                            break
+            elif not self.in_second_scope:
+                temp_dict = self.symbol_table['global']
+                if lexeme not in temp_dict:
+                    temp_dict[lexeme] = self.first_current_state
+                    self.first_current_state += 1
+                self.second_scope_globals = []
+
+        if lexeme == enums.Languages.KEYWORDS.value[2]:
+            self.in_second_scope = True
+            self.func_start = True
+            self.reach_keyword = False
+            self.symbol_table['local'] = {}
+            self.second_current_state = 0
 
     def add_to_files(self):
         if len(self.tokens) != 0:

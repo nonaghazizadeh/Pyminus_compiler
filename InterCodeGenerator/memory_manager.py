@@ -22,6 +22,8 @@ class MemoryManager:
         self.dis = 0
         self.ids = []
         self.main_addr = None
+        self.break_f = []
+        self.continue_addr = []
 
         # save top and top_sp in static data
         self.top_sp_addr = self.__static_data_inx
