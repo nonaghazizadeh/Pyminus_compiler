@@ -3,6 +3,7 @@ from enum import Enum
 
 class Languages(Enum):
     KEYWORDS = ['break', 'continue', 'def', 'else', 'if', 'return', 'while', 'output', 'global']
+    STARTER_KEYWORDS = ['if', 'while', 'output', 'return']
     SYMBOLS = [';', ':', ',', '[', ']', '(', ')', '+', '-', '*', '=', '<', '==', '**']
     WHITESPACES = [' ', '\n', '\r', '\t', '\v', '\f']
     EQUAL = '='
