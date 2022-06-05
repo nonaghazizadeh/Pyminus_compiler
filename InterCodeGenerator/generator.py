@@ -21,8 +21,8 @@ class InterCodeGen:
             self.push_id(param)
         elif action_symbol == 'push_num':
             self.push_num(param)
-        elif action_symbol == 'assign':
-            self.assign()
+        elif action_symbol == 'assign_value':
+            self.assign_value()
         elif action_symbol == 'print':
             self.print()
         elif action_symbol == 'add_param':
@@ -57,6 +57,12 @@ class InterCodeGen:
             self.add_id(param)
         elif action_symbol == 'push_returned_value':
             self.push_returned_value()
+        elif action_symbol == 'assign_array':
+            self.assign_array()
+        elif action_symbol == 'add_element':
+            self.add_element()
+        elif action_symbol == 'push_element':
+            self.push_element()
         else:
             print('ACTION SYMBOL NOT FOUND')
 
@@ -66,9 +72,9 @@ class InterCodeGen:
         x = self.semantic_stack.pop(inx)
         if type(x) == str:
             if x[0] == '%':     # top_addr relative
-                return self.mem_manager.get_absolute(base=self.mem_manager.top_sp_addr, dis=int(x[1:]))
+                return self.mem_manager.get_absolute(base='top_sp', dis=int(x[1:]))
             elif x[0] == '^':       # static data relative
-                return self.mem_manager.get_absolute(base=self.mem_manager.static_addr, dis=int(x[1:]))
+                return self.mem_manager.get_absolute(base='static', dis=int(x[1:]))
             else:
                 return x    # num
         else:   # params, ...
@@ -92,7 +98,6 @@ class InterCodeGen:
     def push_id(self, name: str):
         local_data = self.scanner.symbol_table['local']
         global_data = self.scanner.symbol_table['global']
-        print(self.scanner.symbol_table)
 
         # simple assignment
         if local_data.get(name) is not None:
@@ -112,7 +117,7 @@ class InterCodeGen:
     def push_num(self, num: str):
         self.semantic_stack.append('#' + num)
 
-    def assign(self):
+    def assign_value(self):
         self.mem_manager.write('assign', self.pop_semantic_stack(), self.pop_semantic_stack())
 
     def print(self):
@@ -239,3 +244,17 @@ class InterCodeGen:
     def add_id(self, name: str):
         self.mem_manager.ids.append(name)
         self.mem_manager.dis += 1
+
+    def assign_array(self):
+        self.mem_manager.write('assign', f'#{self.mem_manager.array_inx}', self.pop_semantic_stack())
+
+    def add_element(self):
+        self.mem_manager.write('assign', self.pop_semantic_stack(), self.mem_manager.array_inx)
+        self.mem_manager.array_inx += 4
+
+    def push_element(self):
+        t, _ = self.mem_manager.get_temp()
+        self.mem_manager.write('mult', self.pop_semantic_stack(), '#4', t)
+        f = self.mem_manager.get_free()
+        self.mem_manager.write('add', t, self.pop_semantic_stack(), f)
+        self.semantic_stack.append(f'@{f}')
