@@ -27,6 +27,8 @@ class Scanner:
         self.in_second_scope = False
         self.second_current_state = 0
         self.reach_keyword = False
+        self.memory = ''
+        self.second_scope_global = []
 
     def recognize_keyid(self, token):
         if token in enums.Languages.KEYWORDS.value:
@@ -131,6 +133,9 @@ class Scanner:
                 another_char_recognized = True
                 break
 
+        if lexeme == 'global':
+            self.memory = lexeme
+
         if self.in_second_scope and (lexeme == 'output' or lexeme == 'while' or lexeme == 'if' or lexeme == 'or'):
             self.reach_keyword = True
 
@@ -141,19 +146,24 @@ class Scanner:
             self.is_in_func = False
         elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and not self.reach_keyword:
             if self.in_second_scope:
-                temp_dict = self.symbol_table['local']
-                for jdx in range(idx, len(chars)):
-                    if chars[jdx] == ' ':
-                        continue
-                    elif chars[jdx] == '=' or chars[jdx] == ',' or chars[jdx] == ')':
-                        if lexeme not in temp_dict:
-                            temp_dict[lexeme] = self.second_current_state
-                            self.second_current_state += 1
-                        break
-                    else:
-                        break
+                if self.memory == 'global':
+                    self.second_scope_global.append(lexeme)
+                    self.memory = ''
+                elif self.memory == '' and lexeme not in self.second_scope_global:
+                    temp_dict = self.symbol_table['local']
+                    for jdx in range(idx, len(chars)):
+                        if chars[jdx] == ' ':
+                            continue
+                        elif chars[jdx] == '=' or chars[jdx] == ',' or chars[jdx] == ')':
+                            if lexeme not in temp_dict:
+                                temp_dict[lexeme] = self.second_current_state
+                                self.second_current_state += 1
+                            break
+                        else:
+                            break
             elif not self.in_second_scope:
                 temp_dict = self.symbol_table['global']
+                self.second_scope_global = []
                 if lexeme not in temp_dict:
                     temp_dict[lexeme] = self.current_state
                     self.current_state += 1

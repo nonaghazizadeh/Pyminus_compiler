@@ -34,12 +34,13 @@ class MemoryManager:
 
     def write(self, inst, addr1='', addr2='', addr3=''):
         self.virtual_mem[self.code_block_inx] = f'({inst.upper()}, {addr1}, {addr2}, {addr3})'
+        print(f'({inst.upper()}, {addr1}, {addr2}, {addr3})')
         self.code_block_inx += 4
 
     def get_pc(self):
         return int(self.code_block_inx / 4)
 
-    def get_free(self):     # get next free address -> 3000, 3008, 3096, ...
+    def get_free(self):  # get next free address -> 3000, 3008, 3096, ...
         f = self.__free_inx
         self.__free_inx += 4
         return f
@@ -51,7 +52,7 @@ class MemoryManager:
         self.write('add', self.top_sp_addr, f'#{dis * 4}', f)
         return f'@{f}', f'%{dis}'
 
-    def get_absolute(self, base: str, dis: int):      # dis: displacement
+    def get_absolute(self, base: str, dis: int):  # dis: displacement
         dis *= 4
         if base == 'top_sp':
             f = self.get_free()

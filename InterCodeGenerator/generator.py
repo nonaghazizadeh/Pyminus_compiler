@@ -30,7 +30,9 @@ class InterCodeGen:
         elif action_symbol == 'call_func':
             self.call_func()
         elif action_symbol == 'return_value':
-            self.return_value()
+            self.return_value(True)
+        elif action_symbol == 'return':
+            self.return_value(False)
         elif action_symbol == 'power':
             self.power()
         elif action_symbol in ['add', 'sub', 'mult']:
@@ -75,6 +77,13 @@ class InterCodeGen:
                 return self.mem_manager.get_absolute(base='top_sp', dis=int(x[1:]))
             elif x[0] == '^':       # static data relative
                 return self.mem_manager.get_absolute(base='static', dis=int(x[1:]))
+            elif x[0] == '*':       # array
+                self.semantic_stack.extend(x[1:].split('|'))
+                t, _ = self.mem_manager.get_temp()
+                self.mem_manager.write('mult', self.pop_semantic_stack(), '#4', t)
+                f = self.mem_manager.get_free()
+                self.mem_manager.write('add', t, self.pop_semantic_stack(), f)
+                return f'@{f}'
             else:
                 return x    # num
         else:   # params, ...
@@ -159,13 +168,18 @@ class InterCodeGen:
         self.semantic_stack.append(f'%{self.mem_manager.dis}')
         self.mem_manager.dis += 1
 
-    def return_value(self):
+    def return_value(self, has_value: bool):
+        # if func is main
+        if 'main' in self.scanner.symbol_table['global'].keys():
+            return
+
         t = self.mem_manager.get_free()
         self.mem_manager.write('assign', self.mem_manager.top_sp_addr, t)
 
         # save returned value
         self.mem_manager.write('sub', t, '#12', t)
-        self.mem_manager.write('assign', self.pop_semantic_stack(), f'@{t}')
+        if has_value:
+            self.mem_manager.write('assign', self.pop_semantic_stack(), f'@{t}')
 
         # restore TOP_SP
         self.mem_manager.write('add', t, '#8', t)
@@ -253,8 +267,5 @@ class InterCodeGen:
         self.mem_manager.array_inx += 4
 
     def push_element(self):
-        t, _ = self.mem_manager.get_temp()
-        self.mem_manager.write('mult', self.pop_semantic_stack(), '#4', t)
-        f = self.mem_manager.get_free()
-        self.mem_manager.write('add', t, self.pop_semantic_stack(), f)
-        self.semantic_stack.append(f'@{f}')
+        self.semantic_stack.append(f'*{self.semantic_stack.pop(-2)}|{self.semantic_stack.pop()}')
+

@@ -12,16 +12,18 @@ with open('output.txt', 'w') as f:
     output = parser.inter_code_gen.mem_manager.return_code_block()
     f.write(output)
 
-
+# from Parser.parser import Parser
 # from anytree import RenderTree
-
+#
+# parser = Parser()
+# parser.parse()
 # output = ''
 # for pre, fill, node in RenderTree(parser.root):
 #     output += "%s%s" % (pre, node.name) + '\n'
 # with open('parse_tree.txt', 'w') as f:
 #     f.write(output)
-#
-#
+
+
 # with open('syntax_errors.txt', 'w') as f:
 #     if parser.syntax_error == '':
 #         f.write('There is no syntax error.')
@@ -39,4 +41,4 @@ with open('output.txt', 'w') as f:
 #     print(scanner.symbol_table)
 #     print()
 #     x = scanner.get_next_token()
-#
+
