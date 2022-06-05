@@ -27,7 +27,6 @@ class Scanner:
         self.in_second_scope = False
         self.second_current_state = 0
         self.reach_keyword = False
-        self.memory = ''
 
     def recognize_keyid(self, token):
         if token in enums.Languages.KEYWORDS.value:
@@ -70,7 +69,6 @@ class Scanner:
     def symbol_dfa(self, chars, idx):
         line_tokens = ''
         errors = ''
-        symbol = ''
         if ''.join(chars[idx: idx + 2]) in enums.Languages.SYMBOLS.value:
             line_tokens += ' (' + str(
                 ', '.join((self.recognize_symbol(''.join(chars[idx: idx + 2]))))) + ")"
@@ -88,19 +86,14 @@ class Scanner:
                 idx + 1] == enums.Languages.STAR.value:
                 line_tokens += ' (' + str(', '.join(self.recognize_symbol(current_token))) + ')'
             elif chars[idx] in enums.Languages.SYMBOLS.value:
-                symbol = chars[idx]
                 line_tokens += ' (' + str(', '.join(self.recognize_symbol(current_token))) + ')'
             else:
                 errors += ' (' + str(
                     ', '.join(self.recognize_invalid_input_error(current_token + chars[idx]))) + ")"
                 idx += 1
         else:
-            symbol = chars[idx]
             line_tokens += ' (' + str(', '.join(self.recognize_symbol(''.join(chars[idx])))) + ')'
             idx += 1
-
-        if symbol == ',' or symbol == '=' or symbol =='(':
-            self.memory = symbol
 
         return idx, bool(errors), errors, line_tokens
 
@@ -147,12 +140,18 @@ class Scanner:
             self.all_functions_name.append(lexeme)
             self.is_in_func = False
         elif not self.is_in_func and lexeme not in enums.Languages.KEYWORDS.value and not self.reach_keyword:
-            if self.in_second_scope and (self.memory == ',' or self.memory == '(' or self.memory == '\n'):
+            if self.in_second_scope:
                 temp_dict = self.symbol_table['local']
-                if lexeme not in temp_dict and self.memory != '':
-                    temp_dict[lexeme] = self.second_current_state
-                    self.second_current_state += 1
-                    self.memory = ''
+                for jdx in range(idx, len(chars)):
+                    if chars[jdx] == ' ':
+                        continue
+                    elif chars[jdx] == '=' or chars[jdx] == ',' or chars[jdx] == ')':
+                        if lexeme not in temp_dict:
+                            temp_dict[lexeme] = self.second_current_state
+                            self.second_current_state += 1
+                        break
+                    else:
+                        break
             elif not self.in_second_scope:
                 temp_dict = self.symbol_table['global']
                 if lexeme not in temp_dict:
@@ -263,7 +262,6 @@ class Scanner:
                     token = ''
                     founded = True
                 elif chars[self.idx] == '\n':
-                    self.memory = '\n'
                     self.add_to_files()
                     self.clear_data()
                     self.lineno += 1
