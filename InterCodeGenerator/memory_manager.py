@@ -36,7 +36,6 @@ class MemoryManager:
 
     def write(self, inst, addr1='', addr2='', addr3=''):
         self.virtual_mem[self.code_block_inx] = f'({inst.upper()}, {addr1}, {addr2}, {addr3})'
-        print(f'({inst.upper()}, {addr1}, {addr2}, {addr3})')
         self.code_block_inx += 4
 
     def get_pc(self):

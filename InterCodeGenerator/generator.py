@@ -10,9 +10,9 @@ class InterCodeGen:
         self.mem_manager = MemoryManager(size=enums.MEMORY_SIZE)
 
     def generate(self, action_symbol, param):
-        print('*******************************')
-        print(action_symbol.upper())
-        print(f'before: {self.semantic_stack}')
+        # print('*******************************')
+        # print(action_symbol.upper())
+        # print(f'before: {self.semantic_stack}')
 
         action_symbol = action_symbol[1:]  # delete first hashtag
         if action_symbol == 'update_method':
@@ -72,7 +72,7 @@ class InterCodeGen:
         else:
             print('ACTION SYMBOL NOT FOUND')
 
-        print(f'after: {self.semantic_stack}')
+        # print(f'after: {self.semantic_stack}')
 
     def pop_semantic_stack(self, inx: int = -1):
         x = self.semantic_stack.pop(inx)
