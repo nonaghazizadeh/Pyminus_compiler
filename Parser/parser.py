@@ -3,6 +3,7 @@ from Parser.helper import get_first, extract_token
 
 from Scanner.new_version_scanner import Scanner
 from InterCodeGenerator.generator import InterCodeGen
+from SemanticAnalyzer.analyzer import SemanticAnalyzer
 
 from anytree import Node
 
@@ -19,6 +20,9 @@ class Parser:
 
         # Added For ICG
         self.inter_code_gen = InterCodeGen(self.scanner)
+
+        # Added for Semantic Analyzer
+        self.semantic_analyzer = SemanticAnalyzer()
 
     def create_table(self):
         for A, v in GRAMMAR.items():
@@ -48,9 +52,19 @@ class Parser:
 
             top_of_stack = self.stack.pop()
 
+            # Added for Semantic Analyzer
+            if top_of_stack.name[0:2] == '##':
+                if type(scanner_res) == str:    # turn $ to ($, $) -> analyzer doesn't even use it actually!
+                    scanner_res = (scanner_res, scanner_res)
+
+                self.semantic_analyzer.analyze(top_of_stack.name, scanner_res[1], self.scanner.lineno)
+                continue
+
             # Added for ICG
             if top_of_stack.name[0] == '#':
-                self.inter_code_gen.generate(top_of_stack.name, scanner_res[1])
+                if self.semantic_analyzer.is_correct:
+                    self.inter_code_gen.generate(top_of_stack.name, scanner_res[1])
+
                 continue
 
             if current_token == top_of_stack.name == '$':
