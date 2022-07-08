@@ -53,17 +53,20 @@ class Parser:
             top_of_stack = self.stack.pop()
 
             # Added for Semantic Analyzer
-            if top_of_stack.name[0:2] == '##':
-                if type(scanner_res) == str:    # turn $ to ($, $) -> analyzer doesn't even use it actually!
-                    scanner_res = (scanner_res, scanner_res)
-
-                self.semantic_analyzer.analyze(top_of_stack.name, scanner_res[1], self.scanner.lineno)
+            if top_of_stack.name[0] == '@':
+                # turn $ to ($, $) -> analyzer doesn't even use it actually!
+                normalize_token = lambda x: (x, x) if type(scanner_res) == str else x
+                self.semantic_analyzer.analyze(top_of_stack.name, normalize_token(scanner_res)[1], self.scanner.lineno + 1)
                 continue
 
             # Added for ICG
             if top_of_stack.name[0] == '#':
                 if self.semantic_analyzer.is_correct:
-                    self.inter_code_gen.generate(top_of_stack.name, scanner_res[1])
+                    try:
+                        self.inter_code_gen.generate(top_of_stack.name, scanner_res[1])
+                    except Exception as e:
+                        print(f'Error while generating IC: {e}')
+                        self.semantic_analyzer.is_correct = False
 
                 continue
 

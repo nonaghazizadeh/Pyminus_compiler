@@ -3,7 +3,7 @@ from Parser.enums import FIRST, TERMINAL
 
 def get_first(alpha: str):
     res = set()
-    alpha = remove_hashtags(alpha)
+    alpha = remove_action_symbols(alpha)
     if 'EPSILON' == alpha:
         res.add('EPSILON')
         return res
@@ -36,10 +36,10 @@ def extract_token(t):
         return t[1]
 
 
-def remove_hashtags(alpha: str):
+def remove_action_symbols(alpha: str, action_symbols=['#', '@']):
     res = []
     for s in alpha.split(' '):
-        if s[0] != '#':
+        if s[0] not in action_symbols:
             res.append(s)
 
     return ' '.join(res)

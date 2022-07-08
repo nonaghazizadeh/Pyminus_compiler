@@ -28,6 +28,7 @@ class Scanner:
         self.memory = ''
         self.functions_name = []
         self.second_scope_globals = []
+        self.new_line_eof = False
 
     def recognize_keyid(self, token):
         if token in enums.Languages.KEYWORDS.value:
@@ -363,7 +364,10 @@ class Scanner:
                 continue
 
         if token == '' and self.lineno == len(self.lines):
-            self.lineno -= 1
+            last_line = self.lines[self.lineno - 1]
+            last_char = last_line[len(last_line) - 1]
+            if last_char == '\n':
+                self.new_line_eof = True
             return "$"
         elif token != '':
             return tuple(map(str, token[2:-1].split(', ')))
@@ -376,8 +380,9 @@ class Scanner:
             if res != "$":
                 continue
             elif res == "$":
+                if self.new_line_eof:
+                    self.lineno += 1
                 break
-        print(self.symbol_table)
 
     def get_all_tokens(self):
         self.get_input()

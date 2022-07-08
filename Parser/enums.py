@@ -69,7 +69,7 @@ TERMINAL = {";", "break", "continue", "ID", "=", "[", "]", "(", ")", ",", "retur
             "else", "while", "==", "<", "+", "-", "*", "**", "NUM", "output"}
 
 GRAMMAR = {
-    "Program": ["Statements ##check_main"],
+    "Program": ["Statements @check_main"],
     "Statements": ["Statement ; Statements", "EPSILON"],
     "Statement": ["Compound_stmt", "Simple_stmt"],
     "Simple_stmt": ["Assignment_Call", "Return_stmt", "Global_stmt", "break #break", "continue #continue", "output ( Expression ) #print"],
@@ -81,7 +81,7 @@ GRAMMAR = {
     "Return_stmt": ["return Return_Value"],
     "Return_Value": ["Expression #return_value", "EPSILON #return"],
     "Global_stmt": ["global ID"],
-    "Function_def": ["def ##add_method #update_method ID ( Params ) : Statements"],
+    "Function_def": ["def @add_method #update_method ID ( Params ) : Statements"],
     "Params": ["#saw_id ID Params_Prime", "EPSILON"],
     "Params_Prime": [", #saw_id ID Params_Prime", "EPSILON"],
     "If_stmt": ["if Relational_Expression #save : Statements Else_block"],
