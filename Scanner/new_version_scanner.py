@@ -382,6 +382,8 @@ class Scanner:
             elif res == "$":
                 if self.new_line_eof:
                     self.lineno += 1
+                else:
+                    self.lineno -= 1
                 break
 
     def get_all_tokens(self):
