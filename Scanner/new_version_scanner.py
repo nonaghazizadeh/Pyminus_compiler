@@ -382,7 +382,7 @@ class Scanner:
                 continue
             elif res == "$":
                 if self.new_line_eof:
-                    self.lineno += 1
+                    self.lineno += 2
                 # else:
                 #     self.lineno -= 1
                 print(self.lineno)
