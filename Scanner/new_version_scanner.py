@@ -366,6 +366,7 @@ class Scanner:
         if token == '' and self.lineno - 1 == len(self.lines):
             last_line = self.lines[self.lineno - 2]
             last_char = last_line[len(last_line) - 1]
+            self.lineno -= 1
             if last_char == '\n':
                 self.new_line_eof = True
             return "$"
@@ -384,6 +385,7 @@ class Scanner:
                     self.lineno += 1
                 # else:
                 #     self.lineno -= 1
+                print(self.lineno)
                 break
 
     def get_all_tokens(self):
