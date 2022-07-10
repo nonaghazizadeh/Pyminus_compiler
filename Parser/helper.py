@@ -36,7 +36,7 @@ def extract_token(t):
         return t[1]
 
 
-def remove_action_symbols(alpha: str, action_symbols=['#', '@']):
+def remove_action_symbols(alpha: str, action_symbols=('#', '@')):
     res = []
     for s in alpha.split(' '):
         if s[0] not in action_symbols:

@@ -56,7 +56,7 @@ class Parser:
             if top_of_stack.name[0] == '@':
                 # turn $ to ($, $) -> analyzer doesn't even use it actually!
                 normalize_token = lambda x: (x, x) if type(scanner_res) == str else x
-                self.semantic_analyzer.analyze(top_of_stack.name, normalize_token(scanner_res)[1], self.scanner.lineno + 1)
+                self.semantic_analyzer.analyze(top_of_stack.name, normalize_token(scanner_res)[1], self.scanner.lineno)
                 continue
 
             # Added for ICG

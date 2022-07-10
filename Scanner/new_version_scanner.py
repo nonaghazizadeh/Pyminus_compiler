@@ -17,7 +17,7 @@ class Scanner:
         self.comment_buffer = [enums.Languages.SLASH.value, enums.Languages.STAR.value]
         self.tokens = []
         self.errors = ''
-        self.lineno = 0
+        self.lineno = 1
         self.idx = 0
         self.symbol_table = {'global': {}, 'local': {}}
         self.first_current_state = 0
@@ -248,15 +248,15 @@ class Scanner:
 
     def add_to_files(self):
         if len(self.tokens) != 0:
-            if self.lineno + 1 not in self.token_lines:
-                self.token_lines.append(self.lineno + 1)
-                self.file_handler.tokenized += str(self.lineno + 1) + ".\t" + ''.join(self.tokens).lstrip() + "\n"
+            if self.lineno not in self.token_lines:
+                self.token_lines.append(self.lineno)
+                self.file_handler.tokenized += str(self.lineno ) + ".\t" + ''.join(self.tokens).lstrip() + "\n"
             else:
                 self.file_handler.tokenized = self.file_handler.tokenized[:-1]
                 self.file_handler.tokenized += ''.join(self.tokens) + "\n"
         if self.errors != '':
-            self.error_lines.append(self.lineno + 1)
-            self.file_handler.lexical_errors += str(self.lineno + 1) + ".\t" + self.errors.lstrip() + "\n"
+            self.error_lines.append(self.lineno)
+            self.file_handler.lexical_errors += str(self.lineno) + ".\t" + self.errors.lstrip() + "\n"
 
     def clear_data(self):
         self.tokens = []
@@ -266,7 +266,7 @@ class Scanner:
     def get_next_token(self):
         token = ''
         founded = False
-        chars = self.lines[self.lineno]
+        chars = self.lines[self.lineno - 1]
 
         while not founded:
             if not self.comment_mode:
@@ -282,8 +282,8 @@ class Scanner:
                     self.lineno += 1
                     token = ''
                     founded = False
-                    if self.lineno < len(self.lines):
-                        chars = self.lines[self.lineno]
+                    if self.lineno - 1  < len(self.lines):
+                        chars = self.lines[self.lineno - 1]
                     else:
                         break
                 elif chars[self.idx] in enums.Languages.WHITESPACES.value:
@@ -347,7 +347,7 @@ class Scanner:
                     self.idx = res[0]
                     self.errors += res[1]
             elif self.comment_mode:
-                chars = self.lines[self.lineno]
+                chars = self.lines[self.lineno - 1]
                 self.add_to_files()
                 for i in range(self.idx, len(chars)):
                     self.comment_buffer.append(chars[i])
@@ -363,11 +363,14 @@ class Scanner:
                     break
                 continue
 
-        if token == '' and self.lineno == len(self.lines):
-            last_line = self.lines[self.lineno - 1]
+        if token == '' and self.lineno - 1 == len(self.lines):
+            last_line = self.lines[self.lineno - 2]
             last_char = last_line[len(last_line) - 1]
+
             if last_char == '\n':
                 self.new_line_eof = True
+            else:
+                self.lineno -= 1
             return "$"
         elif token != '':
             return tuple(map(str, token[2:-1].split(', ')))
@@ -375,13 +378,16 @@ class Scanner:
             return self.get_next_token()
 
     def get_input(self):
-        while self.lineno < len(self.lines):
+        while self.lineno - 1 < len(self.lines):
             res = self.get_next_token()
             if res != "$":
                 continue
             elif res == "$":
                 if self.new_line_eof:
                     self.lineno += 1
+                # else:
+                #     self.lineno -= 1
+                print(self.lineno)
                 break
 
     def get_all_tokens(self):
