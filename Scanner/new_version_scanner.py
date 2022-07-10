@@ -366,9 +366,11 @@ class Scanner:
         if token == '' and self.lineno - 1 == len(self.lines):
             last_line = self.lines[self.lineno - 2]
             last_char = last_line[len(last_line) - 1]
-            self.lineno -= 1
+
             if last_char == '\n':
                 self.new_line_eof = True
+            else:
+                self.lineno -= 1
             return "$"
         elif token != '':
             return tuple(map(str, token[2:-1].split(', ')))
@@ -382,7 +384,7 @@ class Scanner:
                 continue
             elif res == "$":
                 if self.new_line_eof:
-                    self.lineno += 2
+                    self.lineno += 1
                 # else:
                 #     self.lineno -= 1
                 print(self.lineno)
