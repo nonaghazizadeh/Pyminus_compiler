@@ -3,27 +3,27 @@ Shayan Mohammadizadeh 98102273
 Nona Ghazizadeh 98171007
 """
 
-from Parser.parser import Parser
-
-parser = Parser()
-parser.parse()
-
-with open('semantic_errors.txt', 'w') as f:
-    if parser.semantic_analyzer.is_correct:
-        f.write('The input program is semantically correct.')
-    else:
-        errors = '\n'.join(parser.semantic_analyzer.semantic_errors)
-        f.write(errors)
-
-with open('output.txt', 'w') as f:
-    if parser.semantic_analyzer.is_correct:
-        output = parser.inter_code_gen.mem_manager.return_code_block()
-        f.write(output)
-    else:
-        f.write('The output code has not been generated.')
-
-print('\n\n///////////////////////////////')
-print(parser.semantic_analyzer.methods)
+# from Parser.parser import Parser
+#
+# parser = Parser()
+# parser.parse()
+#
+# with open('semantic_errors.txt', 'w') as f:
+#     if parser.semantic_analyzer.is_correct:
+#         f.write('The input program is semantically correct.')
+#     else:
+#         errors = '\n'.join(parser.semantic_analyzer.semantic_errors)
+#         f.write(errors)
+#
+# with open('output.txt', 'w') as f:
+#     if parser.semantic_analyzer.is_correct:
+#         output = parser.inter_code_gen.mem_manager.return_code_block()
+#         f.write(output)
+#     else:
+#         f.write('The output code has not been generated.')
+#
+# print('\n\n///////////////////////////////')
+# print(parser.semantic_analyzer.methods)
 
 # from Parser.parser import Parser
 # from anytree import RenderTree
@@ -55,3 +55,12 @@ print(parser.semantic_analyzer.methods)
 #     print()
 #     x = scanner.get_next_token()
 
+
+from Optimizer.optimizer import Optimizer
+
+optimizer = Optimizer()
+optimizer.optimize()
+optimizer.save_optimized_code()
+# print()
+# for c in optimizer.code:
+#     print(c)
